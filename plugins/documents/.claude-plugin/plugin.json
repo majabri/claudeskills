@@ -1,0 +1,10 @@
+{
+  "name": "documents",
+  "displayName": "Documents",
+  "description": "Document and file production: Word, PDF, PowerPoint, Excel, Claude Docs, Google Workspace, doc co-authoring, and internal comms.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Amir Jabri",
+    "url": "https://github.com/majabri"
+  }
+}

@@ -1,0 +1,6 @@
+# staging artifacts
+*.zip
+.DS_Store
+
+# never commit local Claude state into a skills repo
+.claude/settings.local.json

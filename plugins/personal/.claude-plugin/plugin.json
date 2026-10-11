@@ -1,0 +1,10 @@
+{
+  "name": "personal",
+  "displayName": "Personal",
+  "description": "Amir's own working set: NEXUS project coordination, morning brief, memory import, skill authoring, privacy/legal compliance, and the trading desk.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Amir Jabri",
+    "url": "https://github.com/majabri"
+  }
+}

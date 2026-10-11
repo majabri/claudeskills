@@ -1,0 +1,10 @@
+{
+  "name": "engineering",
+  "displayName": "Engineering",
+  "description": "Software engineering across four altitudes (debug, build, operate, architect) plus AI architecture, MCP server authoring, UI testing, web artifacts, and project management.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Amir Jabri",
+    "url": "https://github.com/majabri"
+  }
+}

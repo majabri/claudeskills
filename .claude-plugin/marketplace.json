@@ -1,0 +1,177 @@
+{
+  "name": "claudeskills",
+  "description": "Amir Jabri's Claude skills \u2014 editable, versioned, one folder per skill.",
+  "owner": {
+    "name": "Amir Jabri",
+    "url": "https://github.com/majabri"
+  },
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "name": "engineering",
+      "source": "./plugins/engineering",
+      "description": "Software engineering across four altitudes (debug, build, operate, architect) plus AI architecture, MCP server authoring, UI testing, web artifacts, and project management.",
+      "category": "skills",
+      "tags": [
+        "ai-architect",
+        "devops",
+        "mcp-builder",
+        "project-management",
+        "software-l0-debug",
+        "software-l1-operate",
+        "software-l2-build",
+        "software-l3-architect",
+        "ui-tester",
+        "web-artifacts-builder"
+      ]
+    },
+    {
+      "name": "documents",
+      "source": "./plugins/documents",
+      "description": "Document and file production: Word, PDF, PowerPoint, Excel, Claude Docs, Google Workspace, doc co-authoring, and internal comms.",
+      "category": "skills",
+      "tags": [
+        "doc-coauthoring",
+        "docs",
+        "docx",
+        "google-workspace",
+        "internal-comms",
+        "pdf",
+        "pptx",
+        "xlsx"
+      ]
+    },
+    {
+      "name": "creative",
+      "source": "./plugins/creative",
+      "description": "Visual and creative work: canvas design, algorithmic art, brand guidelines, theming, Slack GIFs, short-form video packages, and marketing/brand expertise.",
+      "category": "skills",
+      "tags": [
+        "algorithmic-art",
+        "brand-guidelines",
+        "canvas-design",
+        "marketing-expert",
+        "short-form-video-package",
+        "slack-gif-creator",
+        "theme-factory"
+      ]
+    },
+    {
+      "name": "personal",
+      "source": "./plugins/personal",
+      "description": "Amir's own working set: NEXUS project coordination, morning brief, memory import, skill authoring, privacy/legal compliance, and the trading desk.",
+      "category": "skills",
+      "tags": [
+        "import-memory",
+        "morning",
+        "nexus",
+        "privacy-legal",
+        "skill-creator",
+        "trading-desk"
+      ]
+    },
+    {
+      "name": "lovable",
+      "source": "./plugins/lovable",
+      "description": "Working with Lovable projects \u2014 database changes on Lovable Cloud, and the constraints that make ordinary advice wrong.",
+      "version": "1.0.0",
+      "category": "skills",
+      "tags": [
+        "lovabledatabase"
+      ]
+    },
+    {
+      "name": "legal",
+      "source": "./plugins/legal",
+      "description": "Speed up contract review, NDA triage, and compliance workflows for in-house legal teams. Draft legal briefs, organize precedent research, and manage institutional knowledge.",
+      "version": "1.3.0",
+      "category": "knowledge-work",
+      "tags": [
+        "brief",
+        "compliance-check",
+        "legal-response",
+        "legal-risk-assessment",
+        "meeting-briefing",
+        "review-contract",
+        "signature-request",
+        "triage-nda",
+        "vendor-check"
+      ]
+    },
+    {
+      "name": "marketing",
+      "source": "./plugins/marketing",
+      "description": "Create content, plan campaigns, and analyze performance across marketing channels. Maintain brand voice consistency, track competitors, and report on what's working.",
+      "version": "1.2.0",
+      "category": "knowledge-work",
+      "tags": [
+        "brand-review",
+        "campaign-plan",
+        "competitive-brief",
+        "content-creation",
+        "draft-content",
+        "email-sequence",
+        "performance-report",
+        "seo-audit"
+      ]
+    },
+    {
+      "name": "data",
+      "source": "./plugins/data",
+      "description": "Write SQL, explore datasets, and generate insights faster. Build visualizations and dashboards, and turn raw data into clear stories for stakeholders.",
+      "version": "1.1.0",
+      "category": "knowledge-work",
+      "tags": [
+        "analyze",
+        "build-dashboard",
+        "create-viz",
+        "data-context-extractor",
+        "data-visualization",
+        "explore-data",
+        "sql-queries",
+        "statistical-analysis",
+        "validate-data",
+        "write-query"
+      ]
+    },
+    {
+      "name": "customer-support",
+      "source": "./plugins/customer-support",
+      "description": "Triage tickets, draft responses, escalate issues, and build your knowledge base. Research customer context and turn resolved issues into self-service content.",
+      "version": "1.3.0",
+      "category": "knowledge-work",
+      "tags": [
+        "customer-escalation",
+        "customer-research",
+        "draft-response",
+        "kb-article",
+        "ticket-triage"
+      ]
+    },
+    {
+      "name": "enterprise-search",
+      "source": "./plugins/enterprise-search",
+      "description": "Search across all of your company's tools in one place. Find anything across email, chat, documents, and wikis without switching between apps.",
+      "version": "1.3.0",
+      "category": "knowledge-work",
+      "tags": [
+        "digest",
+        "knowledge-synthesis",
+        "search",
+        "search-strategy",
+        "source-management"
+      ]
+    },
+    {
+      "name": "cowork-plugin-management",
+      "source": "./plugins/cowork-plugin-management",
+      "description": "Create, customize, and manage plugins tailored to your organization's tools and workflows. Configure MCP servers, adjust plugin behavior, and adapt templates to match how your team works.",
+      "version": "0.2.2",
+      "category": "knowledge-work",
+      "tags": [
+        "cowork-plugin-customizer",
+        "create-cowork-plugin"
+      ]
+    }
+  ]
+}

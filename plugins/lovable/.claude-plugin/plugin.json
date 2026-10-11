@@ -1,0 +1,10 @@
+{
+  "name": "lovable",
+  "displayName": "Lovable",
+  "description": "Working with Lovable projects — database changes on Lovable Cloud, and the constraints that make ordinary advice wrong.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Amir Jabri",
+    "url": "https://github.com/majabri"
+  }
+}
