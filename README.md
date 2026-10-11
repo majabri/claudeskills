@@ -23,6 +23,12 @@ claude plugin marketplace update claudeskills   # on each machine
 
 Skills are namespaced by their plugin, so `lovable/skills/lovabledatabase/SKILL.md` is invoked as `lovable:lovabledatabase`.
 
+A session can also read any skill directly, without installing it:
+
+```
+https://raw.githubusercontent.com/majabri/claudeskills/main/plugins/<plugin>/skills/<skill>/SKILL.md
+```
+
 ## Layout
 
 ```
@@ -112,17 +118,17 @@ Amir's own working set: NEXUS project coordination, morning brief, memory import
 | `trading-desk` | `personal:trading-desk` | Expert trading desk, chart analyst and risk officer for Amir's investment-pal / Investment OS — swing trading, short selling, options (single-leg, spreads, cove… |
 
 
-### `lovable` — 2 skills
+### `lovable` — 2 skills — v1.3.0
 
 Working with Lovable projects — direct database work through the Lovable MCP server, and the Cloud constraints that make ordinary advice wrong.
 
 | skill | invoked as | description |
 |---|---|---|
 | `lovable-mcp-setup` | `lovable:lovable-mcp-setup` | Connect Claude Code (or another agent) to the Lovable MCP server so it can work on Lovable projects directly — reading files and diffs, checking analytics, and … |
-| `lovabledatabase` | `lovable:lovabledatabase` | Do database work on a Lovable Cloud project directly, without going through Lovable's chat — schema, RLS policies, functions, triggers, scheduled jobs, backfill… |
+| `lovabledatabase` | `lovable:lovabledatabase` | Do database work on a Lovable Cloud project through the Lovable MCP server — read-backs, live reads and diagnostics directly via query_database, and every schem… |
 
 
-### `legal` — 9 skills
+### `legal` — 9 skills — v1.3.0
 
 Speed up contract review, NDA triage, and compliance workflows for in-house legal teams. Draft legal briefs, organize precedent research, and manage institutional knowledge.
 
@@ -139,7 +145,7 @@ Speed up contract review, NDA triage, and compliance workflows for in-house lega
 | `vendor-check` | `legal:vendor-check` | Check the status of existing agreements with a vendor across all connected systems — CLM, CRM, email, and document storage — with gap analysis and upcoming dead… |
 
 
-### `marketing` — 8 skills
+### `marketing` — 8 skills — v1.2.0
 
 Create content, plan campaigns, and analyze performance across marketing channels. Maintain brand voice consistency, track competitors, and report on what's working.
 
@@ -155,7 +161,7 @@ Create content, plan campaigns, and analyze performance across marketing channel
 | `seo-audit` | `marketing:seo-audit` | Run a comprehensive SEO audit — keyword research, on-page analysis, content gaps, technical checks, and competitor comparison. Use when assessing a site's SEO h… |
 
 
-### `data` — 10 skills
+### `data` — 10 skills — v1.1.0
 
 Write SQL, explore datasets, and generate insights faster. Build visualizations and dashboards, and turn raw data into clear stories for stakeholders.
 
@@ -173,7 +179,7 @@ Write SQL, explore datasets, and generate insights faster. Build visualizations 
 | `write-query` | `data:write-query` | Write optimized SQL for your dialect with best practices. Use when translating a natural-language data need into SQL, building a multi-CTE query with joins and … |
 
 
-### `customer-support` — 5 skills
+### `customer-support` — 5 skills — v1.3.0
 
 Triage tickets, draft responses, escalate issues, and build your knowledge base. Research customer context and turn resolved issues into self-service content.
 
@@ -186,7 +192,7 @@ Triage tickets, draft responses, escalate issues, and build your knowledge base.
 | `ticket-triage` | `customer-support:ticket-triage` | Triage and prioritize a support ticket or customer issue. Use when a new ticket comes in and needs categorization, assigning P1-P4 priority, deciding which team… |
 
 
-### `enterprise-search` — 5 skills
+### `enterprise-search` — 5 skills — v1.3.0
 
 Search across all of your company's tools in one place. Find anything across email, chat, documents, and wikis without switching between apps.
 
@@ -199,7 +205,7 @@ Search across all of your company's tools in one place. Find anything across ema
 | `source-management` | `enterprise-search:source-management` | Manages connected MCP sources for enterprise search. Detects available sources, guides users to connect new ones, handles source priority ordering, and manages … |
 
 
-### `cowork-plugin-management` — 2 skills
+### `cowork-plugin-management` — 2 skills — v0.2.2
 
 Create, customize, and manage plugins tailored to your organization's tools and workflows. Configure MCP servers, adjust plugin behavior, and adapt templates to match how your team works.
 
