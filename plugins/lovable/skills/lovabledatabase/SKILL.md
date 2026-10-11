@@ -1,6 +1,6 @@
 ---
 name: lovabledatabase
-description: Make database changes to a Lovable Cloud project correctly on the first attempt — schema, RLS policies, functions, triggers, scheduled jobs, and the TypeScript/app-code sync that has to follow. Use this whenever the work touches a Lovable app's database: adding or changing tables and columns, writing or auditing RLS policies, creating RPCs, triggers or cron jobs, fixing a query that returns nothing or everything, or deciding whether a change belongs in the SQL editor or the Lovable chat. It defers to the repo's own migration ledger and queue conventions where those exist. Use it even when the request sounds like plain SQL ("add a status column", "why can users see each other's rows") — Lovable Cloud has constraints that make ordinary SQL advice wrong.
+description: Make database changes to a Lovable Cloud project correctly on the first attempt — schema, RLS policies, functions, triggers, scheduled jobs, and the TypeScript/app-code sync that has to follow. Use this whenever the work touches a Lovable app's database: adding or changing tables and columns, writing or auditing RLS policies, creating RPCs, triggers or cron jobs, fixing a query that returns nothing or everything, or deciding whether a change belongs in the SQL editor or the Lovable chat. It routes work to the free SQL editor rather than the credit-billed chat wherever that is safe, and defers to the repo's own migration ledger and queue conventions where those exist. Use it even when the request sounds like plain SQL ("add a status column", "why can users see each other's rows") — Lovable Cloud has constraints that make ordinary SQL advice wrong.
 ---
 
 # Lovable Cloud: database changes
@@ -171,29 +171,84 @@ rather than inspecting catalogs by hand — it answers the question actually bei
 asked. Keep it to the one request: a paste containing two asks is how the second
 one gets silently dropped.
 
-## Choosing the channel
+## The chat costs money; the SQL editor does not
 
-This is the decision that determines whether a change lands cleanly, so make it
-deliberately rather than defaulting to whichever is faster to type.
+Route on cost as well as correctness, because the two channels are not priced
+alike and the difference is not small.
 
-**Use the chat when the change should be owned end to end** — a new table, a new
-feature's worth of columns, anything the app's TypeScript needs to know about.
-Lovable writes the Drizzle migration, regenerates the types, and updates the
-calling code in one pass. Hand-running the equivalent SQL gets you the schema
-and leaves the migration history and types stale.
+Asking Lovable in chat to apply a change is a **Build-mode request, billed per
+request** on complexity — Lovable's own published examples run from 0.50 credits
+for a style change to 1.20 for adding authentication. A migration plus types
+regeneration plus call-site edits is squarely in that range, every time, and a
+request that comes back wrong costs again.
 
-**Use the SQL editor when the change is invisible to the app's type surface**
-*and the repo has no ledger rule* — adding an index, writing or replacing an RLS
-policy, creating or altering a function or trigger, scheduling a job, backfilling
-data, or running diagnostics. These don't change the generated types, so there's
-nothing to desync, and authoring them precisely beats describing them in prose.
-Re-read the section above before using this branch: under a ledger rule these
-all belong in the chat instead, because each one is a schema change that must
-produce a migration file.
+The **SQL editor is not in Lovable's billed list.** The only database cost
+driver documented is database-server work, which scales with traffic and query
+volume — a one-off DDL statement is noise against an app's normal read/write
+load. Treat the SQL editor as effectively free and the chat as a paid
+instruction to a nondeterministic worker.
 
-**Use the chat even when you could use SQL** if the change is backward
-incompatible: dropping or renaming a table or column, changing a column's type,
-or adding a required column without a default. See the next section for why.
+So the default flips: **author the SQL and run it in the SQL editor unless
+something specific forces the chat.** Three things force it.
+
+1. **The type surface.** Only Lovable regenerates `types.ts`. Any change the
+   generated types reflect — a new table, a new or dropped column, a changed
+   column type, a new enum value — leaves the types stale if applied by hand,
+   and stale types break the build or, worse, typecheck against a schema that no
+   longer exists.
+2. **A ledger rule, for the things it governs.** Only Lovable's apply writes the
+   Drizzle copy and journal entry. See the section above and the split below.
+3. **Backward-incompatible changes** — dropping or renaming a table or column,
+   changing a type, adding a required column without a default. Not because the
+   SQL editor can't, but because the permission gate exists to make someone look
+   first, and skipping it is how a published app breaks.
+
+### What the SQL editor can take
+
+None of these touch `types.ts`, so none of them risk a type desync:
+
+- RLS policies — create, replace, drop
+- Grants and revokes, including column-level
+- Indexes, including `create index concurrently`
+- Function and trigger bodies (`create or replace function`)
+- Triggers, and the drop-then-create they require
+- Scheduled job rows, where the scheduler is reachable from SQL
+- Data backfills, corrections, and one-off updates
+- Every diagnostic and verification query in this skill
+
+This is most routine database work, and on a credit-metered project it is the
+difference between a free fix and a billed one.
+
+### What it cannot take
+
+- Anything in the type surface — tables, columns, enums, column types
+- Anything a ledger rule requires a migration file for
+
+### Reconciling the SQL editor with a ledger rule
+
+These two pull against each other and the tension is real, so resolve it
+explicitly rather than by preference.
+
+A ledger test compares committed source files against Lovable's applied copies.
+A SQL-editor change produces **no** applied copy — so the safe thing and the
+dangerous thing are easy to mix up:
+
+- **Do not** commit a source file into the ledger directory for a change you
+  applied by hand. A committed source with no applied copy is an unapplied
+  migration, and the gap check fails — typically on the main branch, not just a
+  PR.
+- **Do** record the SQL somewhere the ledger parser does not read, so the change
+  stays reproducible. A sibling directory and a short index file is enough. What
+  must not happen is the change existing only in the live database: then
+  `supabase/migrations/` quietly stops describing the schema, a rebuild from
+  scratch produces something different, and the next person to trust the
+  migration history is misled.
+
+**Where that sibling directory lives, and whether the repo wants one at all, is
+a convention decision — not this skill's to make.** Propose it, name the test it
+has to stay clear of, and get it written into `CLAUDE.md` before relying on it.
+Until then, assume the ledger rule governs anything it covers, and say what the
+chat-routed version will cost.
 
 Whichever channel applies, the SQL in this skill is still the deliverable — a
 chat-routed change is better served by handing Lovable the exact statements and
@@ -469,8 +524,13 @@ alongside the old one. Update all code references and regenerate the types.
 ## Response shape
 
 Lead with which channel the change belongs in and why, in one line — naming the
-repo rule that decided it when there is one. Then the SQL or the prompt. Then
-the verification query. Then anything the app needs.
+repo rule that decided it when there is one, and when the answer is the chat,
+saying that it will cost credits and what forced it there. Then the SQL or the
+prompt. Then the verification query. Then anything the app needs.
+
+When a request could be split — part of it type-surface, part of it policies or
+indexes — split it, and send only the type-surface half through the chat. A
+single combined chat request is billed for the whole thing.
 Don't bury a backward-incompatible warning at the end — if the change is gated
 by that permission, that's the first thing said.
 
