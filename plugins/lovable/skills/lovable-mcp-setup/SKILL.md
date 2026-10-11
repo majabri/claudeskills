@@ -119,8 +119,19 @@ Several tools act irreversibly on live projects, and a rule written in a skill
 is guidance a future session can reason around. A permission rule is not. Prefer
 the rule.
 
-MCP tools are addressed as `mcp__<server>__<tool>`, where `<server>` is the name
-given in `claude mcp add` — `lovable` here. In `.claude/settings.json`:
+MCP tools are addressed as `mcp__<server>__<tool>` — and **`<server>` is whatever
+*this client* named the connection, which is not the same everywhere:**
+
+| How it was connected | Server segment | Example |
+|---|---|---|
+| `claude mcp add … lovable …` | `lovable` | `mcp__lovable__query_database` |
+| claude.ai custom connector | `Lovable_MCP` | `mcp__Lovable_MCP__query_database` |
+
+A rule written for the wrong segment **matches nothing and silently protects
+nothing** — the only symptom is a startup warning that is easy to miss. So read
+the real names out of the session with `/permissions` or `/mcp` and write the
+rules from those. Never copy the example below without checking the prefix; it
+uses the terminal spelling.
 
 ```json
 {
@@ -155,7 +166,7 @@ Why these:
 
 Rules are evaluated **deny → ask → allow**, first match wins, and specificity
 does not change that order — so a `deny` cannot be carved out by a later
-`allow`. Wildcards work: `mcp__lovable__*` covers the whole server, `mcp__*`
+`allow`. Wildcards work: `mcp__<server>__*` covers the whole server, `mcp__*`
 every MCP tool. A rule naming a tool that doesn't exist produces a startup
 warning, which is how typos surface — so confirm the real names with
 `/permissions` or `/mcp` before writing them, rather than trusting this list.

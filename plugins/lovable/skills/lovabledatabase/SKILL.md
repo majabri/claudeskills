@@ -106,11 +106,18 @@ These exist because the tool has no guardrails of its own.
    is `select` -ing a secret to look at it, or putting one in a response. If a
    read-back would expose a secret column, project the other columns instead.
    Secrets are *managed* in More → Cloud → Secrets; this is about using them.
-9. **Check which role `query_database` actually runs as before trusting a
-   read-back.** Lovable's database tools have been observed being refused
-   service-role functions, and if `query_database` runs as that same restricted
-   role, read-backs that depend on elevated functions fail — which reads like a
-   broken change rather than a permissions limit. Establish it once per project:
+9. **Check which role `query_database` actually runs as — the answer is usually
+   the opposite of the worry.** The concern is that it runs as a restricted role
+   and read-backs depending on elevated functions fail, reading like a broken
+   change rather than a permissions limit. In practice it has been observed
+   running as **`postgres`** — the database owner, with `current_user` and
+   `session_user` both `postgres` and `security definer` functions callable.
+
+   That is the *more* dangerous answer, not the safer one. It means **RLS does
+   not constrain anything you run here**, no permission barrier stands between a
+   generated statement and the data, and a query that would be refused from the
+   app succeeds from this tool. Treat a `postgres` result as a reason to tighten
+   the handling in these rules, not to relax it. Establish it once per project:
 
    ```sql
    select current_user, session_user,
