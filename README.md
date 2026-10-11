@@ -2,7 +2,7 @@
 
 Amir Jabri's Claude skills, kept in one place so they can be edited once and picked up everywhere.
 
-**71 skills in 11 installable plugins.** One folder per skill — edit `SKILL.md`, commit, push, and every machine that has the marketplace picks it up on the next update.
+**72 skills in 11 installable plugins.** One folder per skill — edit `SKILL.md`, commit, push, and every machine that has the marketplace picks it up on the next update.
 
 ## Install
 
@@ -74,7 +74,7 @@ Document and file production: Word, PDF, PowerPoint, Excel, Claude Docs, Google 
 | skill | invoked as | description |
 |---|---|---|
 | `doc-coauthoring` | `documents:doc-coauthoring` | Guide users through a structured workflow for co-authoring documentation. Use when user wants to write documentation, proposals, technical specs, decision docs,… |
-| `docs` | `documents:docs` | docs (editable docs people share and comment on; the default for any document, named as a doc or not: a document, report, proposal, resume, cover letter, letter… |
+| `docs` | `documents:docs` | 'docs (editable docs people share and comment on; the default for any document, named as a doc or not: a document, report, proposal, resume, cover letter, lette… |
 | `docx` | `documents:docx` | Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx) or Word templates (.dotx). Triggers include: any mention of M… |
 | `google-workspace` | `documents:google-workspace` | Read this before the first Google Drive, Docs, Sheets or Slides connector call whenever the task creates or changes a Google file. Use this skill whenever the u… |
 | `internal-comms` | `documents:internal-comms` | A set of resources to help me write all kinds of internal communications, using the formats that my company likes to use. Claude should use this skill whenever … |
@@ -112,13 +112,14 @@ Amir's own working set: NEXUS project coordination, morning brief, memory import
 | `trading-desk` | `personal:trading-desk` | Expert trading desk, chart analyst and risk officer for Amir's investment-pal / Investment OS — swing trading, short selling, options (single-leg, spreads, cove… |
 
 
-### `lovable` — 1 skill
+### `lovable` — 2 skills
 
-Working with Lovable projects — database changes on Lovable Cloud, and the constraints that make ordinary advice wrong.
+Working with Lovable projects — direct database work through the Lovable MCP server, and the Cloud constraints that make ordinary advice wrong.
 
 | skill | invoked as | description |
 |---|---|---|
-| `lovabledatabase` | `lovable:lovabledatabase` | Make database changes to a Lovable Cloud project correctly on the first attempt — schema, RLS policies, functions, triggers, scheduled jobs, and the TypeScript/… |
+| `lovable-mcp-setup` | `lovable:lovable-mcp-setup` | Connect Claude Code (or another agent) to the Lovable MCP server so it can work on Lovable projects directly — reading files and diffs, checking analytics, and … |
+| `lovabledatabase` | `lovable:lovabledatabase` | Do database work on a Lovable Cloud project directly, without going through Lovable's chat — schema, RLS policies, functions, triggers, scheduled jobs, backfill… |
 
 
 ### `legal` — 9 skills

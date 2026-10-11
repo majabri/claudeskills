@@ -1,309 +1,266 @@
 ---
 name: lovabledatabase
-description: Make database changes to a Lovable Cloud project correctly on the first attempt — schema, RLS policies, functions, triggers, scheduled jobs, and the TypeScript/app-code sync that has to follow. Use this whenever the work touches a Lovable app's database: adding or changing tables and columns, writing or auditing RLS policies, creating RPCs, triggers or cron jobs, fixing a query that returns nothing or everything, or deciding whether a change belongs in the SQL editor or the Lovable chat. It routes work to the free SQL editor rather than the credit-billed chat wherever that is safe, and defers to the repo's own migration ledger and queue conventions where those exist. Use it even when the request sounds like plain SQL ("add a status column", "why can users see each other's rows") — Lovable Cloud has constraints that make ordinary SQL advice wrong.
+description: Do database work on a Lovable Cloud project directly, without going through Lovable's chat — schema, RLS policies, functions, triggers, scheduled jobs, backfills, diagnostics, and the bookkeeping that has to follow. Use this whenever work touches a Lovable app's database: adding or changing tables and columns, writing or auditing RLS policies, creating RPCs, triggers or cron jobs, investigating a query that returns nothing or everything, or deciding which channel a change belongs in. The Lovable MCP server's query_database runs SQL directly, so most work needs no Lovable chat at all — but it writes no migration file and regenerates no types, and that gap is what this skill exists to manage. Use it even when the request sounds like plain SQL ("add a status column", "why can users see each other's rows").
 ---
 
-# Lovable Cloud: database changes
+# Lovable Cloud: database work
 
-## What is actually possible — read this before promising anything
+## The three channels, and what each one actually does
 
-Lovable Cloud is a managed Postgres instance built on Supabase's open-source
-stack. It exposes **no connection string, no database URL, and no retrievable
-password**. Nothing outside Lovable can connect to it: not psql, not a Supabase
-MCP server, not an ORM running locally. Any plan that assumes direct access is
-wrong, and saying otherwise wastes the user's time.
+Lovable Cloud is managed Postgres on Supabase's open-source stack. It exposes
+**no connection string and no retrievable password**, so `psql`, an ORM, a
+Supabase MCP server, or anything else expecting a DSN cannot reach it. That
+limit is real and permanent.
 
-There are exactly **two channels** that can change a Cloud database:
+What *can* reach it:
 
-| Channel | Where | What it's for |
-|---|---|---|
-| **SQL editor** | More → Cloud → SQL editor | Statements you author precisely and the user runs. Destructive statements (DELETE, DROP, TRUNCATE, ALTER, UPDATE) prompt for confirmation. |
-| **Project chat** | The Lovable project chat | Structural changes you want Lovable to own: migration file, generated types, and app wiring together. |
+| Channel | Cost | Writes migration file | Regenerates `types.ts` | Driven by |
+|---|---|---|---|---|
+| **MCP `query_database`** | free per Lovable's FAQ (verify — see below) | **no** | **no** | an agent, directly |
+| **SQL editor** (More → Cloud → SQL editor) | free | **no** | **no** | a human, by paste |
+| **Lovable chat** | **billed per Build-mode request** | yes | yes | Lovable's agent |
 
-**Git is not a third channel — but it may still be where the change starts.**
-Lovable's docs are explicit that migration files added through Git are never
-run: pushing a `.sql` file applies nothing. What Git *can* be is the **source of
-record** that a change is authored into before Lovable applies it, and some
-repos require exactly that (see the ledger section below). The distinction
-matters: committing the SQL is not applying it, and treating a committed file as
-applied is the error. Edge-function code is likewise editable through Git but
-not deployed until someone asks Lovable in chat to deploy it.
+The whole shape of this skill follows from that table. The MCP server removes
+the cost and the copy-paste, but it does **not** remove the bookkeeping: only
+the chat produces a Drizzle migration copy, a journal entry, and regenerated
+types. Treating `query_database` as a full replacement for the chat is the
+central mistake to avoid, and most of this skill is about the gap it leaves.
 
-Git is also where app code, queries, components, and type files live, and those
-you can edit directly.
+### Connecting (one-time)
 
-## The repo's own rules outrank everything below
+```bash
+claude mcp add --transport http lovable "https://mcp.lovable.dev"
+```
 
-Before choosing a channel, find out whether this repo already has a migration
-discipline, because if it does, that discipline wins and the generic guidance in
-this skill is subordinate to it. Check, in this order:
+OAuth only — no API keys. A browser window opens the first time a Lovable tool
+runs. Verify with `/mcp`. On an Enterprise workspace an admin must first enable
+"Third-party MCP clients."
 
-1. `CLAUDE.md` and any `docs/` or ADR file describing database or migration
-   process.
-2. Tests that read the migration directory — a file like
-   `appliedOrder.test.ts` is a strong signal that the committed migration copy
-   is being treated as the **authoritative ledger of what has been applied**.
-3. Any queue or hand-off convention in the repo or its issue templates — an
-   "Awaiting Lovable" column, a paste block, a migration checklist.
+The three database tools, with their real parameters:
 
-**When the committed migration copy is the ledger, every structural change must
-go through the chat**, so that Lovable writes the migration and it lands on the
-synced branch. The SQL editor produces no migration file, so a change made there
-is invisible to the ledger: the test that reads it will disagree with the live
-database, the next PR goes red, and — worse than the red build — the repo now
-contains a migration history that lies about the schema. That is the exact
-failure this skill exists to prevent, so do not trade it for the convenience of
-pasting SQL.
+- `get_database_status(project_id)` — is Cloud provisioned
+- `enable_database(project_id)` — provision it, 30–60 seconds, one-time
+- `query_database(project_id, sql)` — "Execute SQL (SELECT, INSERT, UPDATE,
+  DELETE, DDL)"
 
-Under a ledger rule, the SQL editor narrows to **read-only use**: the diagnostic
-and verification queries in this skill, which change nothing and leave no gap.
-If a change genuinely cannot be expressed through the chat, say so, name the
-ledger rule it would break, and let the user decide — never pick silently.
+### What the docs do not promise, and you must not assume
 
-A repo with no such convention falls through to the guidance below.
+Be skeptical here; the absence of documentation is itself the finding:
+
+- **Credits.** The FAQ says "Standard Lovable credits apply to `create_project`
+  and `send_message` calls. Other tools are free." But the pre-connection
+  warning says "Tool calls use real credits and edit real projects." These
+  conflict. Treat `query_database` as free *provisionally*, and check **More →
+  Cloud → Usage** after the first real session rather than trusting either line.
+- **No safety rails are documented.** No confirmation prompt, no destructive-
+  statement gating, no transaction wrapping. The SQL editor at least prompts on
+  `DELETE`/`DROP`/`TRUNCATE`/`ALTER`/`UPDATE`; `query_database` is documented to
+  run "with your full database permissions" and nothing more. Assume a `DROP`
+  executes immediately and silently.
+- **No limits are documented** — not query size, timeout, or row count, and
+  nothing about result truncation. So chunk large work rather than discovering a
+  limit mid-statement, and never assume a long result came back whole.
+- **Scope is the whole account.** A connected client can reach **every project
+  the account can access**, not just one. `project_id` is the only thing
+  separating a change to the right database from a change to the wrong one.
+
+## Rules for driving `query_database`
+
+These exist because the tool has no guardrails of its own.
+
+1. **Pin `project_id` explicitly on every call**, resolved once at the start of
+   the session via `list_projects` and then reused verbatim. Never infer it from
+   context or carry it across sessions from memory. One wrong id is a change
+   applied to a different app.
+2. **Read before you write.** Confirm the object exists and has the shape you
+   think it does before altering it. The cost of a `SELECT` is nothing; the cost
+   of an `ALTER` against a mistaken assumption is a broken published app.
+3. **One logical change per call**, so a failure is attributable. Batching four
+   statements and getting one error tells you little about the other three.
+4. **Wrap multi-statement changes in an explicit transaction** so a partial
+   failure doesn't leave half a change applied:
+
+   ```sql
+   begin;
+     alter table public.invoices add column if not exists currency text;
+     update public.invoices set currency = 'USD' where currency is null;
+   commit;
+   ```
+
+   DDL is transactional in Postgres, which makes this genuinely useful rather
+   than cosmetic — though note `create index concurrently` cannot run inside a
+   transaction.
+5. **State the rollback before running anything destructive**, in the response,
+   as a statement that can be pasted. If you cannot write one — a dropped column
+   with data in it, a `TRUNCATE` — say so and stop: Cloud backups are daily
+   snapshots retained roughly 14 days, restoring reverts the schema too and
+   discards everything after the snapshot. That is not a rollback.
+6. **Verify from the database, not from the call returning cleanly.** The
+   verification queries below are part of the change, not an optional extra.
+7. **Never read or write `auth.users` directly**, and never move secrets through
+   SQL. Secrets belong in More → Cloud → Secrets.
+
+## The repo's own rules outrank everything above
+
+A direct SQL channel makes it *easier* to desync a repo, not harder. Before any
+change, find out whether the repo has a migration discipline — if it does, that
+discipline wins. Check, in this order:
+
+1. `CLAUDE.md` and any `docs/` or ADR file describing database process.
+2. Tests that read the migration directory. A file like `appliedOrder.test.ts`
+   or `appliedLedger.ts` means the committed migration copy is being treated as
+   the **authoritative ledger of what has been applied**.
+3. Any queue or hand-off convention — an "Awaiting Lovable" section, a paste
+   block, a migration checklist.
+
+A repo with no such convention falls through to the plain guidance below.
 
 ### The source-first ledger pattern
 
 Some repos run a stricter discipline than Lovable requires, because Lovable's
-own behaviour isn't trustworthy enough on its own. The markers are a test over
-the migration directory, a journal file, and a queue section in `CLAUDE.md`.
-Where you find them, this is the shape — but **re-read `CLAUDE.md` for the
-authoritative wording**, since the details below are a pattern, not a spec, and
-the repo's copy wins:
+own behaviour isn't trustworthy enough alone. **Re-read `CLAUDE.md` for the
+authoritative wording** — the following is the pattern, and the repo's copy wins:
 
 - **Two directories, two jobs.** `supabase/migrations/`
   (`<14-digit-timestamp>_<name>.sql`) holds the **source of truth**, authored and
   committed by hand. `drizzle/migrations/` (`NNNN_<name>.sql`) plus
   `drizzle/migrations/meta/_journal.json` is **Lovable's ledger of what it
   actually applied**, written only by Lovable. Never hand-edit the ledger.
-- **Matching is normalized, not byte-for-byte.** Don't describe it as byte-for-
-  byte; that overstates it in one direction and understates it in another. The
-  comparison strips `--` line comments and collapses all whitespace to single
-  spaces before comparing. Two consequences people get wrong:
+- **Matching is normalized, not byte-for-byte.** Don't call it byte-for-byte.
+  The comparison strips `--` line comments and collapses whitespace to single
+  spaces. Two consequences people get wrong:
   - `/* … */` block comments are **not** stripped, so a copy differing only in a
     block comment **fails**. Keep block comments out of migration SQL.
   - A `--` inside a string literal is cut too. Harmless for matching, but it
-    means comment text is never trustworthy as content — never put meaning in a
-    comment and expect it to survive.
-- **Copies are matched by content, not by filename.** The Drizzle copy
+    means comment text is never trustworthy as content.
+- **Copies match by content, not filename.** The Drizzle copy
   `0065_stock_intel_signed.sql` is recognised as the source
   `20261011100000_stock_intel_signed.sql` because the normalized text matches.
-  Each copy must map to exactly one committed source file.
-- **A copy with no committed source fails the build, and the fix is to commit the
-  source — never to loosen the test.** This has happened in practice and was
-  resolved by back-filling the source file afterwards.
-- **Order of operations, every time:** commit the source file → add the queue row
-  → ask Lovable to apply → Lovable commits its ledger copy and journal entry →
+  Each copy must map to exactly one committed source.
+- **A copy with no committed source fails the build, and the fix is to commit
+  the source — never to loosen the test.**
+- **Order of operations:** commit the source file → add the queue row → ask
+  Lovable to apply → Lovable commits its ledger copy and journal entry →
   `types.ts` is regenerated.
-- **Never author schema SQL that doesn't exist as a committed source file
-  first.** This is the inversion of normal practice and it's the whole point: the
-  file is the proposal, the ledger is the receipt.
-- **The ledger has a floor.** Source files with a timestamp older than the one
-  behind Drizzle `0000` predate the ledger and are treated as already applied.
-  Don't try to reconcile them.
+- **The ledger has a floor.** Sources older than the timestamp behind Drizzle
+  `0000` predate the ledger and are treated as applied. Don't reconcile them.
 - **No gaps.** A committed migration must not sit unapplied while a newer one is
-  applied. This check fails on the main branch, not only on a PR, so an
-  out-of-order apply breaks everyone — and it is the check that catches an
-  unapplied migration adding rows or functions.
+  applied. This fails on the main branch, not only on a PR — and it is the check
+  that catches an unapplied migration adding rows or functions.
 - **The forward-dependency check is narrower than it sounds.** It catches only an
-  applied migration referencing a **table** that an unapplied file creates.
-  Anything else out of order is caught by the gap check above, not this one.
-- **Every new migration needs its queue row**, or the PR fails regardless of
-  whether the SQL is correct. **Stale rows are fine**: a row for an
-  already-applied migration is allowed, so that Lovable's own commit doesn't turn
-  the main branch red. It is removed in the PR that verifies the apply.
-- **Audit Lovable's own merge commits.** Lovable should only ever touch the
-  ledger, `types.ts`, and the lockfiles. A Lovable merge that changes anything
-  else has silently reverted someone's work — this has actually happened. Check
-  the diff rather than assuming.
+  applied migration referencing a **table** an unapplied file creates. Everything
+  else falls to the gap check.
+- **Every new migration needs its queue row**, or the PR fails. **Stale rows are
+  fine** — a row for an already-applied migration is allowed so Lovable's own
+  commit doesn't redden main. It is removed in the PR that verifies the apply.
+- **Audit Lovable's own merge commits.** Lovable should only touch the ledger,
+  `types.ts`, and lockfiles. A Lovable merge changing anything else has silently
+  reverted someone's work — this has happened. Check the diff.
 - **Lovable does not publish.** Applying a migration is not a deploy.
 
-**The pinned journal exception.** The journal may legitimately be missing an
-entry for one specific copy, pinned by the test as the single allowed
-discrepancy: every journal entry must have a copy, and exactly one copy is
-allowed without a journal entry. In this repo that is
-`0012_goals_account.sql` — Lovable's journal skipped it when it was applied, and
-the apply was verified at the time. **Do not "fix" the journal by hand.** Adding
-the missing entry breaks the test, and hand-editing the ledger is forbidden
-anyway. A careful reader will be tempted; say so before they are.
+**The pinned journal exception.** The journal may legitimately lack an entry for
+one specific copy, pinned by the test as the single allowed discrepancy. In this
+repo that is `0012_goals_account.sql` — Lovable's journal skipped it when it was
+applied, and the apply was verified at the time. **Do not "fix" the journal by
+hand.** Adding the entry breaks the test, and hand-editing the ledger is
+forbidden anyway. A careful reader will be tempted; say so before they are.
 
 **The queue table.** Columns are `# | Migration | What it needs | Addendum`. The
 parser recognises only `\d{14}_[a-z0-9_]+\.sql` filenames, and only between the
-`## Awaiting Lovable` heading and the next `## ` heading — so a name written any
-other way, or placed outside that block, is invisible to it. The matching
-addendum lives at `docs/implementation/LOVABLE-QUEUE-<date>-<name>.md`.
+`## Awaiting Lovable` heading and the next `## ` heading — a name written any
+other way, or placed outside that block, is invisible to it. The addendum lives
+at `docs/implementation/LOVABLE-QUEUE-<date>-<name>.md`.
 
-**What stays outside the migration flow.** Not everything Lovable does is a
-schema change, and treating it as one creates busywork: secrets, scheduled-job
-rows, hand-fired runs, and live read-only queries are legitimate non-migration
-work. Don't manufacture a migration file for them, and don't block them behind
-the queue.
+### Reconciling direct SQL with a ledger rule
 
-### The paste block
+This is the hard part, and `query_database` sharpens it rather than solving it.
+A ledger test compares committed sources against Lovable's applied copies.
+Direct SQL produces **no** applied copy. So:
 
-Under this pattern the deliverable handed to Lovable is a block with five parts,
-in this order:
-
-1. **The file to apply**, named exactly as the queue table names it, and where it
-   goes in the order — after which Drizzle index.
-2. **One sentence** on what it does, and whether `types.ts` changes.
-3. **The read-backs from the addendum, verbatim**, each with its expected answer
-   in a comment.
-4. **The rollback line**, at one-day recovery granularity.
-5. **The one request**: report the answers verbatim, and the Drizzle index the
-   copy received.
-
-Three rules govern the block itself, and each exists because of a specific way it
-has gone wrong:
-
-- **Nothing else goes in it.** No history, no "publish", and no filename from
-  memory. The queue table and the addendum are the only sources for what goes in
-  the block — a filename recalled rather than copied is how the wrong migration
-  gets applied.
-- **One block per queue row, in apply order.** A row whose PR hasn't merged is
-  left out entirely, because its source file isn't on the main branch for Lovable
-  to copy from.
-- **The block ends the report**, and is forwarded unedited. Anything written
-  after it tends to get pasted along with it.
-
-For column-level grants, write the read-backs with `has_column_privilege(...)`
-rather than inspecting catalogs by hand — it answers the question actually being
-asked. Keep it to the one request: a paste containing two asks is how the second
-one gets silently dropped.
-
-## The chat costs money; the SQL editor does not
-
-Route on cost as well as correctness, because the two channels are not priced
-alike and the difference is not small.
-
-Asking Lovable in chat to apply a change is a **Build-mode request, billed per
-request** on complexity — Lovable's own published examples run from 0.50 credits
-for a style change to 1.20 for adding authentication. A migration plus types
-regeneration plus call-site edits is squarely in that range, every time, and a
-request that comes back wrong costs again.
-
-The **SQL editor is not in Lovable's billed list.** The only database cost
-driver documented is database-server work, which scales with traffic and query
-volume — a one-off DDL statement is noise against an app's normal read/write
-load. Treat the SQL editor as effectively free and the chat as a paid
-instruction to a nondeterministic worker.
-
-So the default flips: **author the SQL and run it in the SQL editor unless
-something specific forces the chat.** Three things force it.
-
-1. **The type surface.** Only Lovable regenerates `types.ts`. Any change the
-   generated types reflect — a new table, a new or dropped column, a changed
-   column type, a new enum value — leaves the types stale if applied by hand,
-   and stale types break the build or, worse, typecheck against a schema that no
-   longer exists.
-2. **A ledger rule, for the things it governs.** Only Lovable's apply writes the
-   Drizzle copy and journal entry. See the section above and the split below.
-3. **Backward-incompatible changes** — dropping or renaming a table or column,
-   changing a type, adding a required column without a default. Not because the
-   SQL editor can't, but because the permission gate exists to make someone look
-   first, and skipping it is how a published app breaks.
-
-### What the SQL editor can take
-
-None of these touch `types.ts`, so none of them risk a type desync:
-
-- RLS policies — create, replace, drop
-- Grants and revokes, including column-level
-- Indexes, including `create index concurrently`
-- Function and trigger bodies (`create or replace function`)
-- Triggers, and the drop-then-create they require
-- Scheduled job rows, where the scheduler is reachable from SQL
-- Data backfills, corrections, and one-off updates
-- Every diagnostic and verification query in this skill
-
-This is most routine database work, and on a credit-metered project it is the
-difference between a free fix and a billed one.
-
-### What it cannot take
-
-- Anything in the type surface — tables, columns, enums, column types
-- Anything a ledger rule requires a migration file for
-
-### Reconciling the SQL editor with a ledger rule
-
-These two pull against each other and the tension is real, so resolve it
-explicitly rather than by preference.
-
-A ledger test compares committed source files against Lovable's applied copies.
-A SQL-editor change produces **no** applied copy — so the safe thing and the
-dangerous thing are easy to mix up:
-
-- **Do not** commit a source file into the ledger directory for a change you
-  applied by hand. A committed source with no applied copy is an unapplied
-  migration, and the gap check fails — typically on the main branch, not just a
-  PR.
-- **Do** record the SQL somewhere the ledger parser does not read, so the change
-  stays reproducible. A sibling directory and a short index file is enough. What
-  must not happen is the change existing only in the live database: then
+- **Do not** commit a source file into the ledger directory for a change applied
+  directly. A committed source with no applied copy is an unapplied migration,
+  and the gap check fails — typically on main, not just a PR.
+- **Do** record the SQL where the ledger parser does not read, so the change
+  stays reproducible. A sibling directory and a short index is enough. What must
+  not happen is the change existing only in the live database: then
   `supabase/migrations/` quietly stops describing the schema, a rebuild from
   scratch produces something different, and the next person to trust the
   migration history is misled.
 
-**Where that sibling directory lives, and whether the repo wants one at all, is
-a convention decision — not this skill's to make.** Propose it, name the test it
-has to stay clear of, and get it written into `CLAUDE.md` before relying on it.
-Until then, assume the ledger rule governs anything it covers, and say what the
-chat-routed version will cost.
+**Where that sibling directory lives, and whether the repo wants one, is a
+convention decision — not this skill's to make.** Propose it, name the test it
+has to stay clear of, and get it into `CLAUDE.md` before relying on it.
 
-Whichever channel applies, the SQL in this skill is still the deliverable — a
-chat-routed change is better served by handing Lovable the exact statements and
-intent than by describing them loosely. Authoring precisely and routing
-correctly are separate decisions.
+## Routing: what goes where
+
+**Default to `query_database`.** It is free, direct, and leaves no transcription
+errors. Everything in this list is safe there because none of it appears in
+`types.ts`:
+
+- RLS policies — create, replace, drop
+- Grants and revokes, including column-level
+- Indexes (`create index concurrently` outside a transaction)
+- Function and trigger bodies (`create or replace function`)
+- Triggers, and the drop-then-create they require
+- Scheduled job rows, where the scheduler is reachable from SQL
+- Data backfills, corrections, one-off updates
+- Every diagnostic and verification query below
+
+**Three things still force the Lovable chat**, and all three are worth paying
+for rather than working around:
+
+1. **The type surface.** Only Lovable regenerates `types.ts`. A new table, a new
+   or dropped column, a changed column type, a new enum value — applied directly,
+   the types go stale, and stale types either break the build or typecheck
+   against a schema that no longer exists. Hand-editing `types.ts` is possible
+   via Git but it is a divergence waiting to happen, since Lovable overwrites it
+   on its next apply. If you do it anyway, say plainly that you did.
+2. **Anything a ledger rule requires a migration file for.**
+3. **Backward-incompatible changes** — see the next section.
+
+When a request mixes both, **split it** and send only the type-surface half
+through the chat. A combined chat request is billed for the whole thing.
+
+**The SQL editor is the fallback**, not a third strategy: use it when the MCP
+server isn't connected, when a human wants to see the statement before it runs,
+or when its confirmation prompt on destructive statements is a feature rather
+than friction.
 
 ## The backward-incompatible trap
 
 `Execute backward incompatible database migrations` is a Cloud permission that
-**defaults to Never allow**. While it's set that way, asking Lovable in chat to
-drop or rename something does not fail loudly — Lovable quietly does something
-else instead: it adds a new column or table, copies the data across, and
-**leaves the old one in place**.
+**defaults to Never allow**. While it is set that way, asking Lovable in chat to
+drop or rename something does not fail loudly — Lovable quietly adds a new column
+or table, copies the data, and **leaves the old one in place**. The user believes
+`full_name` became `display_name`; in fact both exist, different code paths write
+each, and one is going stale.
 
-This is the single most common way a Lovable schema rots. The user believes
-`full_name` was renamed to `display_name`; in fact both exist, both are being
-written by different code paths, and one of them is slowly going stale.
+`query_database` bypasses this gate entirely — it has your full permissions and
+no gating is documented. That is convenient and dangerous in equal measure.
+Before any destructive change:
 
-So before any destructive change:
+1. Say what will be irreversibly lost, and give the rollback statement. If there
+   isn't one, stop and ask.
+2. For a rename, prefer the three-step additive path (below) over a bare
+   `ALTER ... RENAME` when anything is reading the old name.
+3. After any rename or drop requested earlier through the chat, **verify the old
+   object is actually gone** rather than trusting it happened.
 
-1. Say plainly that the permission gates it, and where it lives — Connectors →
-   Cloud → "Manage my agent's permissions", or Account settings → Preferences →
-   Agent permissions.
-2. Recommend **Ask each time** over **Always allow**. Ask-each-time shows the
-   SQL for review before it runs, which is the right amount of friction for an
-   operation that can break a published app.
-3. After any rename or drop that was requested earlier, **verify** the old
-   object is actually gone rather than trusting that it happened.
-
-Drafts have the same shape of limitation: a draft can add tables and columns but
+Drafts share the shape of this limitation: a draft can add tables and columns but
 cannot remove or rename them.
 
 ## Files Lovable owns
 
-Do not hand-edit these. Lovable maintains them, and edits get overwritten or
-desync the migration state:
-
-- `drizzle/` — the whole directory
-- `drizzle.config.ts`
-- `drizzle/schema.ts`
-- `drizzle/migrations/` (and `supabase/migrations/` on older projects)
-
-The generated TypeScript types are also Lovable's output. Lovable's docs don't
-name the file, so **locate it in the repo rather than guessing a path** — look
-for a generated types file imported by the database client, and read its header
-comment. Edit the code that *consumes* the types, never the generated file.
+Never hand-edit: `drizzle/`, `drizzle.config.ts`, `drizzle/schema.ts`,
+`drizzle/migrations/`. The generated types file is also Lovable's output — its
+path isn't documented, so **locate it in the repo** rather than guessing, and
+edit the code that consumes it, not the file.
 
 ## Writing SQL for this database
 
-Cloud runs Supabase's open-source stack, so the Postgres-side primitives behave
-the way they do on Supabase: `auth.uid()`, `auth.role()`, RLS, and the
-`authenticated` / `anon` roles. Treat that as the working assumption but
-**verify before relying on anything exotic** — Lovable doesn't document its
-Postgres surface, so extension availability (`pg_cron`, `pgvector`, `pg_net`) is
-a question to answer with a query, not an assumption:
+Cloud runs Supabase's open-source stack, so `auth.uid()`, `auth.role()`, RLS and
+the `authenticated` / `anon` roles behave as on Supabase. Verify anything exotic
+rather than assuming — extension availability is a query, not a guess:
 
 ```sql
 select extname, extversion from pg_extension order by extname;
@@ -311,16 +268,14 @@ select extname, extversion from pg_extension order by extname;
 
 ### Make every statement re-runnable
 
-The SQL editor has no migration history behind it, so a statement that half-ran
-leaves no record. Write SQL that can be run twice without error:
+There is no migration history behind direct SQL, so a half-run statement leaves
+no record. Write SQL that survives being run twice:
 
 ```sql
--- additive, safe to re-run
 alter table public.invoices
   add column if not exists status text not null default 'draft';
 
-create index if not exists invoices_status_idx
-  on public.invoices (status);
+create index if not exists invoices_status_idx on public.invoices (status);
 
 -- policies have no "if not exists" — drop first
 drop policy if exists "invoices_select_own" on public.invoices;
@@ -332,84 +287,68 @@ create policy "invoices_select_own"
 
 ### Adding a required column without breaking the app
 
-Never `add column ... not null` with no default on a table that has rows or a
-live writer. Three steps, each safe on its own:
+Never `add column ... not null` with no default on a table with rows or a live
+writer. Three steps, each safe alone:
 
 ```sql
--- 1. add nullable
 alter table public.invoices add column if not exists currency text;
--- 2. backfill
 update public.invoices set currency = 'USD' where currency is null;
--- 3. constrain, once the app writes it
 alter table public.invoices alter column currency set not null;
 alter table public.invoices alter column currency set default 'USD';
 ```
 
-Step 3 is backward incompatible. It belongs in the chat, or behind the permission.
+The third step is backward incompatible — read that section first.
 
 ## RLS policies
 
-Cloud turns RLS on automatically for tables holding user data and writes
-starter policies. Two failure modes matter more than any other, and both are
-invisible until someone looks:
+Cloud enables RLS automatically for tables holding user data and writes starter
+policies. Two failure modes matter more than any other, and both are invisible
+until someone looks.
 
-**RLS enabled with no policy** means the table denies everything to normal
-users — the app reads empty arrays and the bug looks like missing data. Find it:
+**RLS enabled with no policy** denies everything to normal users — the app reads
+empty arrays and it looks like missing data:
 
 ```sql
 select c.relname as table_name
 from pg_class c
 join pg_namespace n on n.oid = c.relnamespace
-where n.nspname = 'public'
-  and c.relkind = 'r'
-  and c.relrowsecurity
-  and not exists (
-    select 1 from pg_policy p where p.polrelid = c.oid
-  )
+where n.nspname = 'public' and c.relkind = 'r' and c.relrowsecurity
+  and not exists (select 1 from pg_policy p where p.polrelid = c.oid)
 order by 1;
 ```
 
 **A policy granted to `anon`** means unauthenticated visitors can read or write
-it. Sometimes intended (a public listings table); usually not. Audit the roles
-a policy applies to, not just its `using` clause:
+it. Sometimes intended, usually not — audit the roles, not just the `using`:
 
 ```sql
 select schemaname, tablename, policyname, cmd, roles, qual, with_check
-from pg_policies
-where schemaname = 'public'
-order by tablename, policyname;
+from pg_policies where schemaname = 'public' order by tablename, policyname;
 ```
 
 Rules worth holding to:
 
-- **Name policies for what they allow**: `invoices_select_own`,
-  `invoices_insert_own`. A policy called `Enable read access for all users` tells
-  a future reader nothing and is usually wrong anyway.
-- **One policy per command.** A single `for all` policy makes it impossible to
-  let users read a row but not delete it, and that distinction is almost always
-  wanted eventually.
-- **`to authenticated` explicitly.** A policy with no role clause applies to
-  every role including `anon`.
-- **`insert` needs `with_check`, not `using`.** Writing `using` on an insert
-  policy silently permits nothing — or everything, depending on the rest.
+- **Name policies for what they allow**: `invoices_select_own`. A policy called
+  `Enable read access for all users` tells a reader nothing and is usually wrong.
+- **One policy per command.** A single `for all` policy makes "read but not
+  delete" impossible, and that distinction is always wanted eventually.
+- **`to authenticated` explicitly** — no role clause means every role, `anon`
+  included.
+- **`insert` needs `with_check`, not `using`.** `using` on an insert policy
+  silently permits nothing, or everything, depending on the rest.
 - **Match the owning column to reality.** `user_id = auth.uid()` only works if
-  that column holds the auth user's id. Confirm the column before writing it.
+  that column holds the auth user's id. Confirm before writing it.
 
 Lovable's RLS view (More → Cloud → Database → RLS policies) is **read-only** —
-useful for review, never for changes.
+for review, never for changes.
 
 ## Functions, triggers, and jobs
 
-**Functions.** Pin `search_path` on every function you create. An unpinned
-`security definer` function is a privilege-escalation path, because a caller can
-manipulate the schema resolution order:
+**Functions.** Pin `search_path` on every function. An unpinned `security
+definer` function is a privilege-escalation path:
 
 ```sql
 create or replace function public.touch_updated_at()
-returns trigger
-language plpgsql
-security invoker
-set search_path = ''
+returns trigger language plpgsql security invoker set search_path = ''
 as $$
 begin
   new.updated_at = now();
@@ -418,12 +357,11 @@ end;
 $$;
 ```
 
-Prefer `security invoker` and reach for `security definer` only when the
-function genuinely must bypass RLS — and when it does, state in the response
-what it bypasses and why. With `search_path = ''`, every reference inside the
-body must be schema-qualified (`public.invoices`, not `invoices`).
+Prefer `security invoker`; reach for `security definer` only when the function
+must bypass RLS, and when it does, say in the response what it bypasses and why.
+With `search_path = ''`, every reference inside must be schema-qualified.
 
-**Triggers.** No `create trigger if not exists` exists; drop first:
+**Triggers.** No `create trigger if not exists`; drop first.
 
 ```sql
 drop trigger if exists invoices_touch_updated_at on public.invoices;
@@ -433,72 +371,63 @@ create trigger invoices_touch_updated_at
 ```
 
 **Scheduled jobs.** Lovable surfaces these at More → Cloud → Jobs, which is
-review-only: creating, rescheduling, and deleting happen through the chat or
-SQL. The docs do **not** confirm the scheduler is `pg_cron`, so check before
-writing cron SQL:
+review-only — creating, rescheduling and deleting happen through SQL or the chat.
+The docs do **not** confirm the scheduler is `pg_cron`, so check:
 
 ```sql
 select extname from pg_extension where extname = 'pg_cron';
 select jobid, schedule, jobname, active from cron.job order by jobid;
 ```
 
-If `pg_cron` is present, schedule through it and give every job a name so it can
-be found and replaced later. If it isn't, the chat is the only route — don't
-invent a scheduling API.
-
-Jobs consume Cloud run credits per execution, so when proposing a schedule, say
-what the frequency costs in rough terms. Hourly when daily would do is a real
-bill. Note also that a scheduled job keeps a project from auto-pausing.
+If `pg_cron` is present, schedule through it and name every job so it can be
+found and replaced. If it isn't, the chat is the only route — don't invent a
+scheduling API. Jobs consume Cloud run credits per execution, so state roughly
+what a proposed frequency costs; hourly when daily would do is a real bill. A
+scheduled job also keeps a project from auto-pausing.
 
 ## Verify, don't assume
 
 Lovable's database views do not update live — the Refresh button is load-bearing,
-and a user reporting "it didn't work" may be looking at a stale page. After any
-change, confirm the state from the database itself rather than from the UI:
+and a user reporting "it didn't work" may be looking at a stale page. Confirm
+from the database itself:
 
 ```sql
--- columns actually present
 select column_name, data_type, is_nullable, column_default
 from information_schema.columns
 where table_schema = 'public' and table_name = 'invoices'
 order by ordinal_position;
 
--- policies actually present
 select policyname, cmd, roles, qual, with_check
-from pg_policies
-where schemaname = 'public' and tablename = 'invoices';
+from pg_policies where schemaname = 'public' and tablename = 'invoices';
 ```
 
-For a rename or drop requested through the chat, verify the **absence** of the
-old object. That's where the backward-incompatible default bites, and the only
-way to catch it is to look.
+For column-level grants use `has_column_privilege(...)` rather than inspecting
+catalogs by hand — it answers the question actually being asked. For a rename or
+drop, verify the **absence** of the old object.
 
 ## Keeping the app in step
 
-A schema change isn't finished when the SQL succeeds. In order:
+A schema change isn't finished when the SQL succeeds:
 
-1. **Types.** A chat-driven change regenerates them. A SQL-editor change does
-   not — so if a SQL-editor change did alter the type surface (it usually
-   shouldn't; if it did, consider whether it belonged in the chat), ask Lovable
-   in chat to regenerate.
-2. **Queries.** New column, new select. Find every call site rather than the
-   first one — a column added for one screen is usually wanted on two.
-3. **Writers.** A column that is `not null` with no default needs every insert
-   path updated, including edge functions and seed scripts.
-4. **Edge functions.** Code edits sync through Git but **are not deployed** by
-   the sync. Deployment is a chat request. Say so rather than leaving the user
-   to discover that their pushed fix isn't live.
+1. **Types.** A chat-driven change regenerates them; a direct one does not. If a
+   direct change touched the type surface, that was probably the wrong channel —
+   say so, and either route it through the chat or state plainly that `types.ts`
+   is now hand-maintained.
+2. **Queries.** New column, new select. Find every call site, not the first.
+3. **Writers.** A `not null` column with no default needs every insert path
+   updated, edge functions and seeds included.
+4. **Edge functions.** Code edits sync through Git but **are not deployed** by the
+   sync. Deployment is a chat request. Say so rather than letting someone think
+   their pushed fix is live.
 
 Never put a secret in a `VITE_`-prefixed variable — those are compiled into the
-browser bundle. Service-role keys and API secrets belong in the project's
-secrets store (More → Cloud → Secrets).
+browser bundle.
 
 ## Writing the chat prompt
 
-When the chat is the right channel, the prompt is the deliverable, so make it
-precise enough that Lovable can't interpret it loosely. State the table, the
-exact column names and types, nullability, defaults, the RLS intent, and what
-should happen to existing rows.
+When the chat is genuinely required, the prompt is the deliverable. State the
+table, exact column names and types, nullability, defaults, RLS intent, and what
+happens to existing rows.
 
 Weak: *"add a status to invoices"*
 
@@ -512,31 +441,29 @@ invoices where user_id = auth.uid(). Regenerate the types and update the invoice
 list and detail components to display the status.
 ```
 
-For a destructive change, name it as such and say what you expect:
+Under a ledger rule the paste block has five parts, in this order: the file to
+apply, named exactly as the queue table names it, and where it goes in the order
+(after which Drizzle index); one sentence on what it does and whether `types.ts`
+changes; the read-backs from the addendum verbatim, each with its expected answer
+in a comment; the rollback line at one-day recovery granularity; and the one
+request — report the answers verbatim and the Drizzle index the copy received.
 
-```text
-Rename `invoices.full_name` to `customer_name`. This is a backward incompatible
-migration — I have set "Execute backward incompatible database migrations" to
-Ask each time, so show me the SQL. I want an actual rename, not a new column
-alongside the old one. Update all code references and regenerate the types.
-```
+Three rules govern the block: **nothing else goes in it** (no history, no
+"publish", no filename from memory — the queue table and addendum are the only
+sources); **one block per queue row, in apply order**, leaving out any row whose
+PR hasn't merged, since its source isn't on main for Lovable to copy; and **the
+block ends the report** and is forwarded unedited.
 
 ## Response shape
 
-Lead with which channel the change belongs in and why, in one line — naming the
-repo rule that decided it when there is one, and when the answer is the chat,
-saying that it will cost credits and what forced it there. Then the SQL or the
-prompt. Then the verification query. Then anything the app needs.
+Lead with the channel and why, in one line — naming the repo rule that decided
+it when there is one, and when the answer is the chat, saying it will cost
+credits and what forced it there. Then the SQL or the prompt. Then the
+verification query. Then anything the app needs.
 
-When a request could be split — part of it type-surface, part of it policies or
-indexes — split it, and send only the type-surface half through the chat. A
-single combined chat request is billed for the whole thing.
-Don't bury a backward-incompatible warning at the end — if the change is gated
-by that permission, that's the first thing said.
+For a destructive change, the irreversible loss and the rollback go **first**,
+not last.
 
-If a request can't be done on Cloud at all — direct connections, sharing a
+If a request can't be done at all — a direct connection string, sharing one
 database between projects, restoring to an arbitrary point in time, retrieving
-the password — say so immediately and give the closest real option. Backups are
-daily snapshots retained roughly 14 days; restoring reverts the schema too and
-discards everything created after the snapshot, so it's a last resort, not a
-tool.
+the password — say so immediately and give the closest real option.

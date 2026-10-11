@@ -73,10 +73,11 @@
     {
       "name": "lovable",
       "source": "./plugins/lovable",
-      "description": "Working with Lovable projects \u2014 database changes on Lovable Cloud, and the constraints that make ordinary advice wrong.",
-      "version": "1.0.0",
+      "description": "Working with Lovable projects \u2014 direct database work through the Lovable MCP server, and the Cloud constraints that make ordinary advice wrong.",
+      "version": "1.1.0",
       "category": "skills",
       "tags": [
+        "lovable-mcp-setup",
         "lovabledatabase"
       ]
     },
