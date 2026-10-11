@@ -97,8 +97,29 @@ These exist because the tool has no guardrails of its own.
    discards everything after the snapshot. That is not a rollback.
 6. **Verify from the database, not from the call returning cleanly.** The
    verification queries below are part of the change, not an optional extra.
-7. **Never read or write `auth.users` directly**, and never move secrets through
-   SQL. Secrets belong in More → Cloud → Secrets.
+7. **Never read or write `auth.users` directly.**
+8. **Secrets may be read inside SQL, never returned by it.** A hand-fired run
+   that needs a credential should fetch it inline — e.g.
+   `(select decrypted_secret from vault.decrypted_secrets where name = '…')`
+   used directly as a header value — so the secret is consumed in the statement
+   and never appears in a result set, a transcript, or a log. What is forbidden
+   is `select` -ing a secret to look at it, or putting one in a response. If a
+   read-back would expose a secret column, project the other columns instead.
+   Secrets are *managed* in More → Cloud → Secrets; this is about using them.
+9. **Check which role `query_database` actually runs as before trusting a
+   read-back.** Lovable's database tools have been observed being refused
+   service-role functions, and if `query_database` runs as that same restricted
+   role, read-backs that depend on elevated functions fail — which reads like a
+   broken change rather than a permissions limit. Establish it once per project:
+
+   ```sql
+   select current_user, session_user,
+          current_setting('role', true) as role_setting,
+          current_setting('request.jwt.claim.role', true) as jwt_role;
+   ```
+
+   Then say plainly which read-backs that role cannot perform, rather than
+   reporting them as failures.
 
 ## The repo's own rules outrank everything above
 
@@ -222,7 +243,12 @@ Everything that changes no schema and leaves nothing to reproduce:
 - **Live reads and diagnostics** — investigating a query that returns nothing,
   checking row counts, inspecting `pg_policies` or `information_schema`
 - **Hand-fired runs** — invoking a job or endpoint once, on purpose, the way a
-  scheduled run would have
+  scheduled run would have. These may read a secret inline (see rule 8) provided
+  the statement never returns it.
+- **Rescheduling an existing job** — changing a cron row's schedule alters no
+  schema and leaves nothing for the replay to reproduce, so it goes direct.
+  *Creating* or *deleting* a job does change structure and follows the migration
+  path.
 - **Data-only corrections**, where the repo's convention allows them and no
   structure changes
 

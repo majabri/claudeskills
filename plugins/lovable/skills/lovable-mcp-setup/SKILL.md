@@ -33,6 +33,30 @@ On an **Enterprise workspace**, an admin or owner must first enable
 must re-authenticate when the session expires. If a call fails with an auth or
 permission error, check those two before assuming the server is down.
 
+## Two front doors, and they are configured separately
+
+Where the session runs decides how Lovable gets connected, and the wrong
+instruction wastes real time:
+
+- **Terminal Claude Code** — `claude mcp add --transport http lovable
+  "https://mcp.lovable.dev"`, or `/plugin install lovable@claude-plugins-official`.
+- **A cloud session (claude.ai / Cowork)** — the CLI commands do nothing here.
+  Add it as a **custom connector** at `claude.ai/customize/connectors` with the
+  URL `https://mcp.lovable.dev`, and approve the sign-in in the browser window
+  that opens.
+
+Either way: **a session loads connectors when it starts.** Adding the connector
+mid-session does not give the running session the tools, and no amount of
+retrying changes that — the correct next step is always to start a fresh session.
+Say that plainly rather than attempting a workaround.
+
+The same split applies to the skills themselves. A cloud session gets skills
+from the claude.ai account, not from a repo — so a repo that has been updated can
+sit alongside a stale account copy, and the session will follow the stale one. If
+a session's behaviour doesn't match the current `SKILL.md`, suspect that before
+suspecting the file. The fix is either to update the account copy or to have the
+session read the file from the repo directly.
+
 ## Know which project you are touching
 
 **A connected client can reach every project the account can access**, not just
