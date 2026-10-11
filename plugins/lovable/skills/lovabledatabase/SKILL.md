@@ -1,6 +1,6 @@
 ---
 name: lovabledatabase
-description: Do database work on a Lovable Cloud project directly, without going through Lovable's chat — schema, RLS policies, functions, triggers, scheduled jobs, backfills, diagnostics, and the bookkeeping that has to follow. Use this whenever work touches a Lovable app's database: adding or changing tables and columns, writing or auditing RLS policies, creating RPCs, triggers or cron jobs, investigating a query that returns nothing or everything, or deciding which channel a change belongs in. The Lovable MCP server's query_database runs SQL directly, so most work needs no Lovable chat at all — but it writes no migration file and regenerates no types, and that gap is what this skill exists to manage. Use it even when the request sounds like plain SQL ("add a status column", "why can users see each other's rows").
+description: Do database work on a Lovable Cloud project through the Lovable MCP server — read-backs, live reads and diagnostics directly via query_database, and every schema change as a committed migration file that Lovable applies. Use this whenever work touches a Lovable app's database: adding or changing tables, columns, RLS policies, grants, functions, triggers, indexes or scheduled jobs, investigating a query that returns nothing or everything, or deciding which channel a change belongs in. The governing rule is replay — the repo must rebuild from supabase/migrations/ alone, so DDL never goes through query_database under a ledger rule, however convenient that would be. Use it even when the request sounds like plain SQL ("add a status column", "why can users see each other's rows").
 ---
 
 # Lovable Cloud: database work
@@ -193,38 +193,75 @@ has to stay clear of, and get it into `CLAUDE.md` before relying on it.
 
 ## Routing: what goes where
 
-**Default to `query_database`.** It is free, direct, and leaves no transcription
-errors. Everything in this list is safe there because none of it appears in
-`types.ts`:
+The deciding question is **replay**, not convenience and not types. A repo under
+a ledger rule must be able to rebuild its database from
+`supabase/migrations/` alone, and both the replay and the ledger test read
+**only those files**. Anything that exists solely in the live database is absent
+from the rebuild — so a reconstructed database has different constraints,
+different functions, and *different security posture* than production. A policy
+that exists in production but not in the replay is the worst version of this,
+because nothing fails loudly; the rebuilt database is simply more open.
 
-- RLS policies — create, replace, drop
-- Grants and revokes, including column-level
-- Indexes (`create index concurrently` outside a transaction)
-- Function and trigger bodies (`create or replace function`)
-- Triggers, and the drop-then-create they require
-- Scheduled job rows, where the scheduler is reachable from SQL
-- Data backfills, corrections, one-off updates
-- Every diagnostic and verification query below
+That is a stronger constraint than the `types.ts` concern, and it covers more:
 
-**Three things still force the Lovable chat**, and all three are worth paying
-for rather than working around:
+> **Under a ledger rule, every schema change is a committed
+> `supabase/migrations/` file that Lovable applies. Never `query_database`.**
 
-1. **The type surface.** Only Lovable regenerates `types.ts`. A new table, a new
-   or dropped column, a changed column type, a new enum value — applied directly,
-   the types go stale, and stale types either break the build or typecheck
-   against a schema that no longer exists. Hand-editing `types.ts` is possible
-   via Git but it is a divergence waiting to happen, since Lovable overwrites it
-   on its next apply. If you do it anyway, say plainly that you did.
-2. **Anything a ledger rule requires a migration file for.**
-3. **Backward-incompatible changes** — see the next section.
+"Schema change" here means **all DDL** — not just tables and columns, but
+policies, grants, functions, triggers, indexes, and enum values. The earlier
+instinct that policies and functions are safe to apply directly because they
+don't appear in `types.ts` is wrong: they don't desync the types, they desync
+the replay, which matters more.
 
-When a request mixes both, **split it** and send only the type-surface half
-through the chat. A combined chat request is billed for the whole thing.
+### What `query_database` is for
 
-**The SQL editor is the fallback**, not a third strategy: use it when the MCP
-server isn't connected, when a human wants to see the statement before it runs,
-or when its confirmation prompt on destructive statements is a feature rather
-than friction.
+Everything that changes no schema and leaves nothing to reproduce:
+
+- **Read-backs and verification** — the queries in this skill, run after an
+  apply to confirm what actually landed
+- **Live reads and diagnostics** — investigating a query that returns nothing,
+  checking row counts, inspecting `pg_policies` or `information_schema`
+- **Hand-fired runs** — invoking a job or endpoint once, on purpose, the way a
+  scheduled run would have
+- **Data-only corrections**, where the repo's convention allows them and no
+  structure changes
+
+This is the free, direct, no-transcription-error path, and it covers most of the
+day-to-day work. It simply does not cover DDL.
+
+### How a schema change gets applied
+
+1. Author the SQL as a new `supabase/migrations/<timestamp>_<name>.sql` file and
+   commit it. The file is the proposal.
+2. Add its queue row.
+3. Deliver the paste block. `send_message` can send it to Lovable directly
+   rather than routing it through a human — which is the real convenience the MCP
+   server buys here. **`send_message` is a billed Build-mode request**, unlike
+   the read tools, so it is the one call worth being deliberate about.
+4. Lovable applies it, commits its ledger copy and journal entry, and
+   regenerates `types.ts`.
+5. Read back with `query_database` and confirm.
+
+### Never `deploy_project`
+
+Publishing is the owner's decision, not an agent's, and applying a migration is
+not a deploy. Don't call it, and don't offer to. Better than remembering: make
+it unreachable with a permission rule — see `lovable-mcp-setup`.
+
+### A repo with no ledger rule
+
+Then the replay argument doesn't apply and the looser routing does: direct SQL
+for anything outside the type surface, chat for tables, columns, enums and
+column types, because only Lovable regenerates `types.ts`. Hand-editing that
+file is possible via Git but it is a divergence waiting to happen, since Lovable
+overwrites it on its next apply — if you do it anyway, say plainly that you did.
+**Backward-incompatible changes still go through the chat either way** — see the
+next section.
+
+**The SQL editor is the human fallback**, not a third strategy: use it when the
+MCP server isn't connected, or when someone wants to see the statement before it
+runs. Under a ledger rule it is subject to exactly the same prohibition as
+`query_database`, for the same reason.
 
 ## The backward-incompatible trap
 
@@ -236,8 +273,10 @@ or table, copies the data, and **leaves the old one in place**. The user believe
 each, and one is going stale.
 
 `query_database` bypasses this gate entirely — it has your full permissions and
-no gating is documented. That is convenient and dangerous in equal measure.
-Before any destructive change:
+no gating is documented. That is convenient and dangerous in equal measure, and
+it is a second reason DDL doesn't belong there: the gate exists to make someone
+look at a destructive migration first, and a direct call removes the only place
+that happens. Before any destructive change:
 
 1. Say what will be irreversibly lost, and give the rollback statement. If there
    isn't one, stop and ask.

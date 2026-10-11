@@ -89,6 +89,59 @@ doing before a long run of tool calls, not after.
 Note that `send_message` is the chat — using it through MCP is still a billed
 Build-mode request. MCP changes the interface, not the pricing.
 
+## Make the dangerous tools unreachable
+
+Several tools act irreversibly on live projects, and a rule written in a skill
+is guidance a future session can reason around. A permission rule is not. Prefer
+the rule.
+
+MCP tools are addressed as `mcp__<server>__<tool>`, where `<server>` is the name
+given in `claude mcp add` — `lovable` here. In `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "mcp__lovable__deploy_project",
+      "mcp__lovable__remix_project",
+      "mcp__lovable__set_project_visibility",
+      "mcp__lovable__delete_workspace_skill"
+    ],
+    "ask": [
+      "mcp__lovable__query_database",
+      "mcp__lovable__send_message"
+    ]
+  }
+}
+```
+
+Why these:
+
+- **`deploy_project` denied.** Publishing is the owner's decision. A bare tool
+  name in `deny` removes the tool from the model's context entirely, so it isn't
+  declined — it is never considered.
+- **`remix_project`, `set_project_visibility`, `delete_workspace_skill` denied.**
+  Each is irreversible or externally visible, and none belongs in a database
+  workflow.
+- **`query_database` on `ask`.** It runs with full database permissions and no
+  documented gating, so a prompt is the only thing standing between a generated
+  `DROP` and an executed one.
+- **`send_message` on `ask`.** It is the one database-workflow call that costs
+  credits; a prompt makes the spend deliberate.
+
+Rules are evaluated **deny → ask → allow**, first match wins, and specificity
+does not change that order — so a `deny` cannot be carved out by a later
+`allow`. Wildcards work: `mcp__lovable__*` covers the whole server, `mcp__*`
+every MCP tool. A rule naming a tool that doesn't exist produces a startup
+warning, which is how typos surface — so confirm the real names with
+`/permissions` or `/mcp` before writing them, rather than trusting this list.
+
+Parameter-level matching is not available for MCP tools in settings files; a rule
+written with parentheses is skipped when the file loads. There is also no
+documented per-tool *allowlist* for a locally added server — to expose only a few
+tools you must deny the rest explicitly, or run in a mode that denies anything
+not pre-approved.
+
 ## Rules that keep this safe
 
 Several tools act irreversibly on live projects, and the documentation describes
