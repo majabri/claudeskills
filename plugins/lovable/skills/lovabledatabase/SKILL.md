@@ -106,6 +106,23 @@ These exist because the tool has no guardrails of its own.
    is `select` -ing a secret to look at it, or putting one in a response. If a
    read-back would expose a secret column, project the other columns instead.
    Secrets are *managed* in More → Cloud → Secrets; this is about using them.
+
+   **Not everything in the secret store is a credential**, and conflating the
+   two creates real cost. A value lives there because the app needs it at
+   runtime, not because it is sensitive — a contact header like
+   `SEC_USER_AGENT` is a company name and email that the SEC asks you to
+   *declare on every request*, sent in the clear to a government server and
+   described nowhere as a credential. Treating it as one leads somewhere worse
+   than the disclosure it avoids: widening an agent's standing access to the
+   whole secret store, permanently, rather than naming a value that is public
+   by design.
+
+   So before refusing to handle a value, ask what it actually is. A token,
+   password, API key or signing secret: never in a prompt, never in a chat
+   message, never in a response. A public identifier, contact string, base URL
+   or rate-limit knob: ordinary configuration — say so plainly and move on. When
+   it genuinely is a credential and the agent needs it, the right answer is a
+   one-time entry through the secure input, not a broadened permission.
 9. **Check which role `query_database` actually runs as — the answer is usually
    the opposite of the worry.** The concern is that it runs as a restricted role
    and read-backs depending on elevated functions fail, reading like a broken
