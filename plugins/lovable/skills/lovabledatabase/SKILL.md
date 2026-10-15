@@ -145,96 +145,58 @@ These exist because the tool has no guardrails of its own.
    Then say plainly which read-backs that role cannot perform, rather than
    reporting them as failures.
 
-## The repo's own rules outrank everything above
+## The repo's own rules outrank everything here
 
 A direct SQL channel makes it *easier* to desync a repo, not harder. Before any
-change, find out whether the repo has a migration discipline — if it does, that
-discipline wins. Check, in this order:
+change, find out whether this repo has a migration discipline — if it does, that
+discipline wins over every routing rule below.
 
-1. `CLAUDE.md` and any `docs/` or ADR file describing database process.
-2. Tests that read the migration directory. A file like `appliedOrder.test.ts`
-   or `appliedLedger.ts` means the committed migration copy is being treated as
-   the **authoritative ledger of what has been applied**.
-3. Any queue or hand-off convention — an "Awaiting Lovable" section, a paste
-   block, a migration checklist.
+**Read the repo's own files rather than relying on a summary of them.** This
+skill deliberately does not mirror them: a copy that defers to the original is
+dead weight when it agrees and actively misleading when it drifts, and it has
+drifted before.
 
-A repo with no such convention falls through to the plain guidance below.
+1. **`CLAUDE.md`** — the process, the queue, and the exact paste format.
+2. **The tests that read the migration directory** — typically under
+   `src/lib/__tests__/schema/`, names like `appliedLedger.ts` or
+   `appliedOrder.test.ts`. These are the *authority*, not the documentation:
+   whatever they assert is the rule, whatever `CLAUDE.md` says about them is a
+   description that can lag.
+3. **Any ADR** describing how the database is changed.
 
-### The source-first ledger pattern
+Read all three before the first write. Quote the specific assertion you are
+following when it decides a routing question, so a reader can check you against
+the source rather than taking your word for it.
 
-Some repos run a stricter discipline than Lovable requires, because Lovable's
-own behaviour isn't trustworthy enough alone. **Re-read `CLAUDE.md` for the
-authoritative wording** — the following is the pattern, and the repo's copy wins:
+### What a ledger rule means in practice
 
-- **Two directories, two jobs.** `supabase/migrations/`
-  (`<14-digit-timestamp>_<name>.sql`) holds the **source of truth**, authored and
-  committed by hand. `drizzle/migrations/` (`NNNN_<name>.sql`) plus
-  `drizzle/migrations/meta/_journal.json` is **Lovable's ledger of what it
-  actually applied**, written only by Lovable. Never hand-edit the ledger.
-- **Matching is normalized, not byte-for-byte.** Don't call it byte-for-byte.
-  The comparison strips `--` line comments and collapses whitespace to single
-  spaces. Two consequences people get wrong:
-  - `/* … */` block comments are **not** stripped, so a copy differing only in a
-    block comment **fails**. Keep block comments out of migration SQL.
-  - A `--` inside a string literal is cut too. Harmless for matching, but it
-    means comment text is never trustworthy as content.
-- **Copies match by content, not filename.** The Drizzle copy
-  `0065_stock_intel_signed.sql` is recognised as the source
-  `20261011100000_stock_intel_signed.sql` because the normalized text matches.
-  Each copy must map to exactly one committed source.
-- **A copy with no committed source fails the build, and the fix is to commit
-  the source — never to loosen the test.**
-- **Order of operations:** commit the source file → add the queue row → ask
-  Lovable to apply → Lovable commits its ledger copy and journal entry →
-  `types.ts` is regenerated.
-- **The ledger has a floor.** Sources older than the timestamp behind Drizzle
-  `0000` predate the ledger and are treated as applied. Don't reconcile them.
-- **No gaps.** A committed migration must not sit unapplied while a newer one is
-  applied. This fails on the main branch, not only on a PR — and it is the check
-  that catches an unapplied migration adding rows or functions.
-- **The forward-dependency check is narrower than it sounds.** It catches only an
-  applied migration referencing a **table** an unapplied file creates. Everything
-  else falls to the gap check.
-- **Every new migration needs its queue row**, or the PR fails. **Stale rows are
-  fine** — a row for an already-applied migration is allowed so Lovable's own
-  commit doesn't redden main. It is removed in the PR that verifies the apply.
-- **Audit Lovable's own merge commits.** Lovable should only touch the ledger,
-  `types.ts`, and lockfiles. A Lovable merge changing anything else has silently
-  reverted someone's work — this has happened. Check the diff.
-- **Lovable does not publish.** Applying a migration is not a deploy.
+Where the tests treat committed migration files as the record of what has been
+applied, the consequence is structural:
 
-**The pinned journal exception.** The journal may legitimately lack an entry for
-one specific copy, pinned by the test as the single allowed discrepancy. In this
-repo that is `0012_goals_account.sql` — Lovable's journal skipped it when it was
-applied, and the apply was verified at the time. **Do not "fix" the journal by
-hand.** Adding the entry breaks the test, and hand-editing the ledger is
-forbidden anyway. A careful reader will be tempted; say so before they are.
+**Replay is the governing constraint.** The repo must be able to rebuild its
+database from the migration directory alone. Anything applied by another route
+is absent from that rebuild — and a rebuilt database missing a policy is *more
+open* than production while nothing fails loudly. That is a worse failure than
+stale types, and it covers more: policies, grants, functions, triggers and
+indexes, not just tables and columns.
 
-**The queue table.** Columns are `# | Migration | What it needs | Addendum`. The
-parser recognises only `\d{14}_[a-z0-9_]+\.sql` filenames, and only between the
-`## Awaiting Lovable` heading and the next `## ` heading — a name written any
-other way, or placed outside that block, is invisible to it. The addendum lives
-at `docs/implementation/LOVABLE-QUEUE-<date>-<name>.md`.
+So under such a rule: **every schema change is a committed migration file
+applied through the repo's sanctioned path. Never ad-hoc SQL.** "Schema change"
+means all DDL.
 
-### Reconciling direct SQL with a ledger rule
+Two ways to get this wrong, and they look opposite:
 
-This is the hard part, and `query_database` sharpens it rather than solving it.
-A ledger test compares committed sources against Lovable's applied copies.
-Direct SQL produces **no** applied copy. So:
+- **Do not** commit a migration file for a change applied by hand. A committed
+  source with no corresponding apply is an unapplied migration, and the gap
+  check fails — typically on the main branch, not just a PR.
+- **Do not** leave a hand-applied change recorded nowhere. Then the migration
+  directory quietly stops describing the schema, a rebuild produces something
+  different, and the next person to trust the history is misled.
 
-- **Do not** commit a source file into the ledger directory for a change applied
-  directly. A committed source with no applied copy is an unapplied migration,
-  and the gap check fails — typically on main, not just a PR.
-- **Do** record the SQL where the ledger parser does not read, so the change
-  stays reproducible. A sibling directory and a short index is enough. What must
-  not happen is the change existing only in the live database: then
-  `supabase/migrations/` quietly stops describing the schema, a rebuild from
-  scratch produces something different, and the next person to trust the
-  migration history is misled.
+If a change genuinely cannot go through the sanctioned path, say so, name the
+specific test it would break, and let the user decide — never pick silently.
 
-**Where that sibling directory lives, and whether the repo wants one, is a
-convention decision — not this skill's to make.** Propose it, name the test it
-has to stay clear of, and get it into `CLAUDE.md` before relying on it.
+A repo with no such convention falls through to the routing guidance below.
 
 ## Routing: what goes where
 
@@ -530,18 +492,21 @@ invoices where user_id = auth.uid(). Regenerate the types and update the invoice
 list and detail components to display the status.
 ```
 
-Under a ledger rule the paste block has five parts, in this order: the file to
-apply, named exactly as the queue table names it, and where it goes in the order
-(after which Drizzle index); one sentence on what it does and whether `types.ts`
-changes; the read-backs from the addendum verbatim, each with its expected answer
-in a comment; the rollback line at one-day recovery granularity; and the one
-request — report the answers verbatim and the Drizzle index the copy received.
+**Where the repo specifies a paste format, follow that format exactly and do not
+reconstruct it from memory.** `CLAUDE.md` owns it — the ordered parts, what may
+and may not appear, and how many blocks go in one message. Open the file and
+copy the shape; a format recalled rather than read is how the wrong migration
+gets applied.
 
-Three rules govern the block: **nothing else goes in it** (no history, no
-"publish", no filename from memory — the queue table and addendum are the only
-sources); **one block per queue row, in apply order**, leaving out any row whose
-PR hasn't merged, since its source isn't on main for Lovable to copy; and **the
-block ends the report** and is forwarded unedited.
+Three properties tend to hold wherever such a format exists, and they are worth
+preserving even when improvising for a repo that has none:
+
+- **Nothing extra in the block.** No history, no commentary, no filename from
+  memory — every identifier comes from the repo, not from recall.
+- **One change per block, in apply order**, leaving out anything whose source
+  isn't on the main branch yet, since there is nothing there for Lovable to copy.
+- **The block ends the message** and is forwarded unedited. Anything written
+  after it tends to get pasted along with it.
 
 ## Response shape
 

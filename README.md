@@ -117,7 +117,7 @@ Amir's own working set: NEXUS project coordination, morning brief, memory import
 | `trading-desk` | `personal:trading-desk` | Expert trading desk, chart analyst and risk officer for Amir's investment-pal / Investment OS — swing trading, short selling, options (single-leg, spreads, cove… |
 
 
-### `lovable` — 2 skills — v1.4.0
+### `lovable` — 2 skills — v2.0.0
 
 Working with Lovable projects — direct database work through the Lovable MCP server, and the Cloud constraints that make ordinary advice wrong.
 

@@ -2,7 +2,7 @@
   "name": "lovable",
   "displayName": "Lovable",
   "description": "Working with Lovable projects \u2014 direct database work through the Lovable MCP server, and the Cloud constraints that make ordinary advice wrong.",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "author": {
     "name": "Amir Jabri",
     "url": "https://github.com/majabri"
