@@ -2,7 +2,7 @@
 
 Amir Jabri's Claude skills, kept in one place so they can be edited once and picked up everywhere.
 
-**72 skills in 11 installable plugins.** One folder per skill — edit `SKILL.md`, commit, push, and every machine that has the marketplace picks it up on the next update.
+**83 skills in 12 installable plugins.** One folder per skill — edit `SKILL.md`, commit, push, and every machine that has the marketplace picks it up on the next update.
 
 ## Install
 
@@ -213,3 +213,20 @@ Create, customize, and manage plugins tailored to your organization's tools and 
 | `cowork-plugin-customizer` | `cowork-plugin-management:cowork-plugin-customizer` | Customize a Claude Code plugin for a specific organization's tools and workflows. Use when: customize plugin, set up plugin, configure plugin, tailor plugin, ad… |
 | `create-cowork-plugin` | `cowork-plugin-management:create-cowork-plugin` | Guide users through creating a new plugin from scratch in a cowork session. Use when users want to create a plugin, build a plugin, make a new plugin, develop a… |
 
+### `linkedin` — 11 skills
+
+Run a LinkedIn account with Claude. Vendored from [Jakeschincariol/linkedin-agent-skill](https://github.com/Jakeschincariol/linkedin-agent-skill) (MIT). Drafts only; you post.
+
+| skill | invoked as | description |
+|---|---|---|
+| `li-post` | `linkedin:li-post` | Write a post from a raw idea: three hook options, one draft, humanized. |
+| `li-comment` | `linkedin:li-comment` | Comment on other people's posts, matched to what the post is. |
+| `li-reply` | `linkedin:li-reply` | Work the thread under your own post, leads first. |
+| `li-profile` | `linkedin:li-profile` | Score your profile out of 100 and rewrite the weakest parts. |
+| `li-plan` | `linkedin:li-plan` | Plan the week: what to post, when, and 10 people to engage with. |
+| `li-human` | `linkedin:li-human` | Strip AI tells from a draft and score it with five local checks. |
+| `li-carousel` | `linkedin:li-carousel` | Slide-by-slide copy and PDF for a document post. |
+| `li-repurpose` | `linkedin:li-repurpose` | Turn one video, newsletter or transcript into a week of posts. |
+| `li-dm` | `linkedin:li-dm` | Connection note, first message and two follow-ups. |
+| `li-inbox` | `linkedin:li-inbox` | Triage the inbox into lead / recruiter / peer / ask / spam. |
+| `li-audit` | `linkedin:li-audit` | Post-mortem on published posts by engagement rate and reach. |

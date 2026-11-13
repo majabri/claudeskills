@@ -1,0 +1,11 @@
+{
+  "name": "linkedin",
+  "displayName": "LinkedIn",
+  "description": "Eleven skills that run a LinkedIn account: posts, comments, replies, profile score, weekly plan, DMs, inbox triage, carousels, repurposing, audits, and a humanizer. Drafts only; nothing is posted without you.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jake Schincariol (vendored by Amir Jabri)",
+    "url": "https://github.com/Jakeschincariol/linkedin-agent-skill"
+  },
+  "license": "MIT"
+}

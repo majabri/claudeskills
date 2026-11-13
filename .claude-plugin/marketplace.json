@@ -173,6 +173,25 @@
         "cowork-plugin-customizer",
         "create-cowork-plugin"
       ]
+    },
+    {
+      "name": "linkedin",
+      "source": "./plugins/linkedin",
+      "description": "Run a LinkedIn account with Claude: posts, comments, replies, profile scoring, weekly plan, DMs, inbox triage, carousels, repurposing, audits, and a humanizer. Vendored from Jakeschincariol/linkedin-agent-skill (MIT).",
+      "category": "skills",
+      "tags": [
+        "li-audit",
+        "li-carousel",
+        "li-comment",
+        "li-dm",
+        "li-human",
+        "li-inbox",
+        "li-plan",
+        "li-post",
+        "li-profile",
+        "li-repurpose",
+        "li-reply"
+      ]
     }
   ]
 }
