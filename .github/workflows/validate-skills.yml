@@ -1,0 +1,27 @@
+name: Validate skills
+
+on:
+  pull_request:
+    paths: ["plugins/**", ".claude-plugin/**", ".github/workflows/validate-skills.yml"]
+  push:
+    branches: [main]
+    paths: ["plugins/**", ".claude-plugin/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check JSON manifests parse
+        run: |
+          for f in .claude-plugin/marketplace.json plugins/*/.claude-plugin/plugin.json plugins/engineering/skills/skill-forge/catalog/ecc-catalog.json; do
+            python3 -m json.tool "$f" > /dev/null || { echo "Invalid JSON: $f"; exit 1; }
+          done
+      - name: Validate every skill
+        run: python3 plugins/engineering/skills/skill-forge/scripts/forge.py validate --all

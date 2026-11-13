@@ -132,3 +132,8 @@ When Claude is the one debugging, watch for:
 - **Inventing API behavior.** Claiming a function returns null when an argument is missing, or that a library has a particular default — without verification. If the bug hinges on the behavior of an external API, read its source or docs. Don't guess.
 
 If you're being asked to debug and you don't have access to run code or read the actual file: say so, give your best hypothesis with explicit caveats, and tell the user what to check to confirm or refute it. Don't pretend to certainty you don't have.
+
+## References
+
+- `references/build-errors.md` — TypeScript / Next.js build and type-check failures: get every error at once, fix in dependency order, minimal diffs. Includes Vercel and Supabase-types notes.
+- `references/silent-failures.md` — Hunting swallowed errors, empty catch blocks, ignored promise rejections and fallbacks that hide bugs. Read when "it doesn't error, it just doesn't work".

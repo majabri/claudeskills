@@ -174,3 +174,7 @@ When Claude is helping with operational work, these are especially common:
 - **Recommending fixes that can't be safely rolled back.** Especially with infrastructure or data. Default to reversible. If irreversibility is unavoidable, name it explicitly.
 
 If the user is in an active incident, your tone shifts: shorter messages, clearer prioritization, fewer caveats, more "do this then check that." The luxury of nuance comes back after stabilization.
+
+## References
+
+- `references/quality-gate.md` — The pre-deploy gate for iCareerOS (code, database/RLS, edge functions, Vercel, rollback). Run it before promoting a release; also available as `/quality-gate`.

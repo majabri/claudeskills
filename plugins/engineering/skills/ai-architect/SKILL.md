@@ -331,3 +331,6 @@ For deeper dives, read these as needed:
 - `references/agents-deep-dive.md` — Agentic system patterns (ReAct, plan-and-execute, multi-agent, memory)
 - `references/eval-playbook.md` — Evaluation strategies, LLM-as-judge, hallucination detection, CI/CD eval gates
 - `references/infra-patterns.md` — Infrastructure and deployment patterns, streaming, caching, self-hosted serving, observability
+- `references/llm-cost.md` — Cost-aware LLM pipelines: model routing, budgets, batching, per-feature cost logging
+- `references/prompt-caching.md` — Prompt caching: prefix design, break-even maths, measuring real hit rates
+- `references/rag-review.md` — Reviewing a RAG pipeline: retrieval quality, chunking, grounding, eval gaps

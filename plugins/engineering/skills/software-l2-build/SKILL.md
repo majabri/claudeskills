@@ -39,8 +39,18 @@ Match the task and read the corresponding file fully before starting work. Compo
 | Restructuring code without changing behavior | `references/refactoring.md` |
 | Writing or improving tests | `references/testing.md` |
 | Reviewing a PR or someone else's diff | `references/code-review.md` |
+| Test-first implementation (red → green → refactor) | `references/tdd-workflow.md` |
+| React components, hooks, state, rendering | `references/react-patterns.md` |
+| TypeScript types, narrowing, generics, strictness | `references/typescript-patterns.md` |
+| Next.js App Router, Server Components, Supabase auth on Next | `references/nextjs.md` |
+| Reviewing TypeScript / React diffs specifically (checklists) | `references/review-typescript.md`, `references/review-react.md` |
+| Verifying a change before opening a PR (build, types, lint, tests) | `references/verification-loop.md` |
 
 If the task is "implement this feature from scratch": design → testing → (debug as you go using L0) → review before merging. Read design first, then testing.
+
+The files from `tdd-workflow.md` down are adapted from Everything Claude Code and carry an **iCareerOS stack notes** section at the end. Read that section too; it overrides generic advice.
+
+If the task needs a topic none of these cover (a framework, a tool, a practice), don't improvise a skill-sized answer from memory. Run the `skill-forge` skill to build it.
 
 ## L2 sub-areas at a glance
 
