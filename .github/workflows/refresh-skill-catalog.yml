@@ -1,0 +1,43 @@
+name: Refresh skill-forge catalog
+
+# Rebuilds the pinned Everything Claude Code catalog used by skill-forge and
+# opens a PR when upstream has changed. Nothing is merged automatically.
+# Requires: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
+
+on:
+  schedule:
+    - cron: "17 13 1 * *"   # 13:17 UTC on the 1st of each month
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch upstream
+        run: git clone --depth 1 https://github.com/affaan-m/everything-claude-code /tmp/ecc
+      - name: Rebuild catalog
+        id: build
+        run: |
+          python3 plugins/engineering/skills/skill-forge/scripts/forge.py refresh-catalog /tmp/ecc
+          echo "sha=$(git -C /tmp/ecc rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Open PR if changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then echo "Catalog unchanged."; exit 0; fi
+          branch="catalog/ecc-${{ steps.build.outputs.sha }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git commit -am "skill-forge: refresh ECC catalog to ${{ steps.build.outputs.sha }}"
+          git push -u origin "$branch"
+          gh pr create --title "skill-forge: refresh ECC catalog to ${{ steps.build.outputs.sha }}" \
+            --body "Automated monthly refresh of \`plugins/engineering/skills/skill-forge/catalog/ecc-catalog.json\` from affaan-m/everything-claude-code. Review the diff for new or removed entries. Merged references are unaffected; re-importing them is a separate, manual step (\`scripts/ecc_import.py\`)."

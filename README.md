@@ -2,7 +2,7 @@
 
 Amir Jabri's Claude skills, kept in one place so they can be edited once and picked up everywhere.
 
-**83 skills in 12 installable plugins.** One folder per skill — edit `SKILL.md`, commit, push, and every machine that has the marketplace picks it up on the next update.
+**85 skills in 12 installable plugins.** One folder per skill — edit `SKILL.md`, commit, push, and every machine that has the marketplace picks it up on the next update.
 
 ## Install
 
@@ -42,6 +42,9 @@ plugins/
 
 ## Adding a new skill
 
+Fastest path: ask Claude to run `/forge-skill <topic>` (the `skill-forge` skill). It checks for an existing skill first, builds from repo material and the catalog, validates, and opens a PR. By hand:
+
+
 1. `mkdir -p plugins/<plugin>/skills/<skill-name>` and write `SKILL.md` with `name:` and `description:` frontmatter.
 2. Commit and push. No manifest change needed — skills are auto-discovered inside `skills/`.
 3. `claude plugin marketplace update claudeskills` on each machine.
@@ -50,19 +53,24 @@ A whole new plugin also needs an entry in `.claude-plugin/marketplace.json`. Val
 
 ```bash
 claude plugin validate .
+python3 plugins/engineering/skills/skill-forge/scripts/forge.py validate --all   # also runs in CI on every PR
 ```
 
 ## Contents
 
-### `engineering` — 10 skills
+### `engineering` — 12 skills — v1.1.0
 
-Software engineering across four altitudes (debug, build, operate, architect) plus AI architecture, MCP server authoring, UI testing, web artifacts, and project management.
+Software engineering across four altitudes (debug, build, operate, architect) plus security review, AI architecture, MCP server authoring, UI testing, web artifacts, project management, and skill-forge for building missing skills.
+
+Also ships subagents (`planner`, `code-reviewer`, `security-reviewer`, `database-reviewer`) and commands (`/plan`, `/code-review`, `/security-scan`, `/quality-gate`, `/forge-skill`). Several references are adapted from [Everything Claude Code](https://github.com/affaan-m/everything-claude-code) (MIT) — see `NOTICE`.
 
 | skill | invoked as | description |
 |---|---|---|
 | `ai-architect` | `engineering:ai-architect` | Transform Claude into a world-class AI Architect and Enterprise Architecture expert for designing, building, and governing production AI systems end-to-end. Tri… |
 | `devops` | `engineering:devops` | Use this skill as the entry point for substantial software engineering work — building features, fixing bugs, reviewing PRs, designing systems, handling product… |
 | `mcp-builder` | `engineering:mcp-builder` | Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. Use when b… |
+| `security-review` | `engineering:security-review` | Security review for Next.js + Supabase + Vercel apps: RLS first, then secrets, auth, input, edge functions, AI features, dependencies. |
+| `skill-forge` | `engineering:skill-forge` | Builds a missing skill from repo material, the pinned ECC catalog and official docs; validates it and opens a PR. |
 | `project-management` | `engineering:project-management` | Use this skill as the entry point for ANY project management work — planning projects, running sprints, managing stakeholders, handling risk, writing charters, … |
 | `software-l0-debug` | `engineering:software-l0-debug` | Use this skill whenever the user is troubleshooting a specific bug, error, exception, traceback, failing test, or any "why is this not working" question at the … |
 | `software-l1-operate` | `engineering:software-l1-operate` | Use this skill whenever the user is dealing with a live system in trouble, an active or past production incident, performance issues under load, on-call duties,… |

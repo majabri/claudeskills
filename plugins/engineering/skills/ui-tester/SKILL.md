@@ -143,3 +143,9 @@ Deliver the report as a saved markdown file (follow the user's project file-loca
 
 - If the user fixes items and asks for a re-test, re-run **only** the FAIL/PARTIAL/BLOCKED items plus anything adjacent to the fix — and diff against the prior report (fixed / still broken / regressed).
 - Close the dedicated test tab(s) when done. Leave no session residue.
+
+## Automated E2E (Playwright)
+
+This skill walks the live UI by hand. To turn what it finds into repeatable tests, read:
+- `references/playwright-e2e.md` — Playwright structure, page objects, flaky-test handling, CI, and iCareerOS notes (Vercel previews, seeded Supabase users).
+- `references/e2e-runner.md` — The procedure for generating, running and maintaining E2E suites.

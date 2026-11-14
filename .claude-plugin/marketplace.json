@@ -10,13 +10,15 @@
     {
       "name": "engineering",
       "source": "./plugins/engineering",
-      "description": "Software engineering across four altitudes (debug, build, operate, architect) plus AI architecture, MCP server authoring, UI testing, web artifacts, and project management.",
+      "description": "Software engineering across four altitudes (debug, build, operate, architect) plus security review, AI architecture, MCP server authoring, UI testing, web artifacts, project management, and skill-forge for building missing skills. Includes planner/reviewer subagents and /plan, /code-review, /security-scan, /quality-gate, /forge-skill.",
       "category": "skills",
       "tags": [
         "ai-architect",
         "devops",
         "mcp-builder",
         "project-management",
+        "security-review",
+        "skill-forge",
         "software-l0-debug",
         "software-l1-operate",
         "software-l2-build",

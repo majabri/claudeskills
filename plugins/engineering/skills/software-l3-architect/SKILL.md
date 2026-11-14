@@ -233,3 +233,12 @@ When Claude is helping with architecture, watch for:
 - **Reaching for complexity to demonstrate sophistication.** Architecture is judged by results over years, not by how clever the diagram is. Simpler designs that work are better than complex ones that might.
 
 If you're being asked to architect something significant: ask the requirements questions first, propose alternatives, name the trade-offs, document what's reversible. Resist the urge to deliver the answer before the question is clear.
+
+## References
+
+- `references/postgres-patterns.md` — Indexing, query shape, schema design, and Supabase RLS performance.
+- `references/database-migrations.md` — Zero-downtime migrations, expand/contract, backfills; iCareerOS uses the Supabase CLI.
+- `references/adr.md` — Writing and reviewing Architecture Decision Records.
+- `references/api-design.md` — REST resource design, pagination, errors, versioning.
+
+These are adapted from Everything Claude Code; each ends with **iCareerOS stack notes** where relevant.

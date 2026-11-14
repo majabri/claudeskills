@@ -71,6 +71,13 @@ When the request doesn't obviously fire one tier, these cues help:
 
 If you genuinely can't tell, ask the user one clarifying question rather than guessing — but lean toward dispatching with the bedrock principles in hand even if the tier is uncertain. The bedrock alone covers most engineering hygiene.
 
+### Beyond the tiers
+
+- **Security** (auth, RLS, secrets, user input, edge functions, pre-launch audit) → `security-review`. Load it in addition to the tier, not instead of it.
+- **Missing skill**: if the work needs a skill that doesn't exist yet → `skill-forge` builds it from the catalog and existing references.
+- **Subagents** in this plugin: `planner`, `code-reviewer`, `security-reviewer`, `database-reviewer`. Hand work to them when the user wants a separate reviewer.
+- **Commands**: `/plan`, `/code-review`, `/security-scan`, `/quality-gate`, `/forge-skill`.
+
 ## Dispatching examples
 
 A few worked examples of how to route real requests:
@@ -117,7 +124,7 @@ This section names the choices made in the current version, so future improvers 
 
 **Open questions (genuinely uncertain):**
 
-- Whether security review deserves its own dedicated tier or stays distributed across L2 and L3 as it currently is.
+- Security review now has its own skill, `security-review` (added 1.1.0), alongside the tiers rather than as a tier.
 - Whether "concurrency" deserves a dedicated reference somewhere or stays as a recurring sub-theme.
 - Whether to add an L4 for org/team-level engineering (tech strategy, technical leadership) or to keep that out of scope.
 
@@ -157,8 +164,9 @@ Both are versions of skipping bedrock principles 1, 2, and 3.
 
 ## Version
 
-**1.0.0** (initial release)
+**1.1.0**
 
 ### Changelog
 
+- **1.1.0** — Merged selected Everything Claude Code material as references (L0 build/silent failures; L1 quality gate; L2 TDD, React, TypeScript, Next.js, review checklists, verification; L3 Postgres, migrations, ADRs, API design; ai-architect cost/caching/RAG review; ui-tester Playwright). Added `security-review` and `skill-forge` skills, four subagents and five commands. See NOTICE for attribution.
 - **1.0.0** — Initial release. Four tiers (L0 debug, L1 operate, L2 build, L3 architect) plus this umbrella. Bedrock principles canonical here, mirrored in each tier for standalone use. L2 uses references for its four sub-areas (design, refactoring, testing, code-review); other tiers self-contained.
