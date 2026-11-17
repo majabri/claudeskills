@@ -1,0 +1,82 @@
+# Copy to .github/workflows/crosspost.yml in a PRIVATE repo that contains this skill
+# at social-crosspost/. Runs twice a day. Dry-run unless the repo variable
+# CROSSPOST_AUTOPUBLISH is "true".
+name: Instagram cross-post
+
+on:
+  schedule:
+    - cron: "17 13,23 * * *"   # 13:17 and 23:17 UTC
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish for real this run"
+        type: boolean
+        default: false
+
+concurrency:
+  group: crosspost
+  cancel-in-progress: false
+
+jobs:
+  crosspost:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CROSSPOST_DATA_DIR: ${{ github.workspace }}/.crosspost-data
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      IG_APP_SECRET: ${{ secrets.IG_APP_SECRET }}
+      YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+      YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+      YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+      TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+      TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+      TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+      X_CLIENT_ID: ${{ secrets.X_CLIENT_ID }}
+      X_CLIENT_SECRET: ${{ secrets.X_CLIENT_SECRET }}
+      X_REFRESH_TOKEN: ${{ secrets.X_REFRESH_TOKEN }}
+      TIKTOK_MODE: ${{ vars.TIKTOK_MODE || 'inbox' }}
+      CROSSPOST_PLATFORMS: ${{ vars.CROSSPOST_PLATFORMS || 'youtube,tiktok,x' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q -r social-crosspost/requirements.txt
+
+      # State + rotated refresh tokens persist between runs in the Actions cache.
+      - name: Restore state
+        uses: actions/cache/restore@v4
+        with:
+          path: .crosspost-data
+          key: crosspost-${{ github.run_id }}
+          restore-keys: crosspost-
+
+      - name: First run baseline
+        run: |
+          if [ ! -f .crosspost-data/state.json ]; then
+            python social-crosspost/scripts/crosspost.py baseline
+          fi
+
+      - name: Cross-post
+        run: |
+          PUBLISH=""
+          if [ "${{ vars.CROSSPOST_AUTOPUBLISH }}" = "true" ] || [ "${{ inputs.publish }}" = "true" ]; then
+            PUBLISH="--publish --cleanup"
+          fi
+          python social-crosspost/scripts/crosspost.py run --limit 3 $PUBLISH | tee result.json
+          echo '### Cross-post result' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat result.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Save state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .crosspost-data
+          key: crosspost-${{ github.run_id }}

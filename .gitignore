@@ -4,3 +4,5 @@
 
 # never commit local Claude state into a skills repo
 .claude/settings.local.json
+/save-token.sh
+/save-signin.sh
