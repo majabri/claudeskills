@@ -81,7 +81,18 @@ python3 scripts/crosspost.py run --limit 1             # dry run
 python3 scripts/crosspost.py run --limit 1 --publish   # real (set YT_PRIVACY=unlisted first)
 ```
 
-## 6. Automatic runs
-Either a Claude scheduled task on the computer that holds this folder (Claude app open), or
-GitHub Actions with `assets/crosspost.yml` (copy every `.env` value and the refresh tokens
-from `.data/tokens.json` into repository secrets).
+## 6. Automatic runs (cloud, no computer needed)
+`.github/workflows/crosspost.yml` in this repo runs every hour on GitHub Actions:
+- backlog left (reels older than 3 days not yet posted): YouTube up to 6 and TikTok up to 5 per
+  run, each stopping at the platform's daily cap;
+- caught up: only at 08:30, 16:30 and 19:30 America/Detroit.
+
+It needs these repository secrets: IG_ACCESS_TOKEN, IG_USER_ID, YT_CLIENT_ID, YT_CLIENT_SECRET,
+YT_REFRESH_TOKEN, TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET, TIKTOK_REFRESH_TOKEN. Upload them from
+the Mac in one step with `bash scripts/push-secrets.sh` (needs the GitHub CLI, `gh auth login`).
+Posting history (no secrets) lives on the `crosspost-state` branch; the run refuses to start
+without it so nothing is ever posted twice. Run it by hand from the Actions tab (Run workflow,
+"force") to test.
+
+To backfill an older catalog: `python3 scripts/crosspost.py include-old`, then let the hourly
+runs work through it; `crosspost.py backlog` shows what's left.

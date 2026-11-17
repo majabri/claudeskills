@@ -100,9 +100,61 @@ def load_state() -> dict:
 
 def save_state(state: dict) -> None:
     p = _state_path()
-    tmp = p.with_suffix(".tmp")
+    tmp = p.with_name(f"{p.name}.{os.getpid()}.tmp")  # unique per process: overlapping runs don't collide
     tmp.write_text(json.dumps(state, indent=2))
     tmp.replace(p)
+
+
+class _NoLock:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def state_lock():
+    """Best-effort exclusive lock around read-modify-write of state.json.
+
+    Works between processes on one machine. On some shared/mounted folders flock is not
+    honoured, so callers also re-read state right before each change to keep the race tiny.
+    """
+    try:
+        import fcntl
+    except ImportError:  # pragma: no cover (Windows)
+        return _NoLock()
+
+    class _Lock:
+        def __enter__(self):
+            try:
+                self.f = open(data_dir() / "state.lock", "a+")
+                fcntl.flock(self.f, fcntl.LOCK_EX)
+            except OSError:
+                self.f = None
+            return self
+
+        def __exit__(self, *exc):
+            if self.f:
+                try:
+                    fcntl.flock(self.f, fcntl.LOCK_UN)
+                finally:
+                    self.f.close()
+            return False
+
+    return _Lock()
+
+
+def free_space(path: Path) -> None:
+    """Empty a finished download. Truncates instead of deleting, because some connected
+    folders don't allow deletes; an empty file is re-downloaded if it's needed again."""
+    try:
+        path.unlink()
+    except OSError:
+        try:
+            with open(path, "w"):
+                pass
+        except OSError:
+            pass
 
 
 # ---------- video helpers ----------

@@ -57,17 +57,25 @@ def refresh_if_due(max_age_days: int = 7) -> None:
         log(f"Instagram token refresh skipped: {r.status_code} {r.text[:200]}")
 
 
-def list_videos(limit: int = 25) -> list[dict]:
-    """Newest-first list of the account's video posts (reels + feed videos)."""
-    r = requests.get(
-        f"{_base()}/{_ig_user_id() or 'me'}/media",
-        params={"fields": FIELDS, "limit": limit, "access_token": access_token()},
-        timeout=30,
-    )
-    if not r.ok:
-        raise PlatformError(f"Instagram list failed: {r.status_code} {r.text[:300]}")
-    items = r.json().get("data", [])
-    return [m for m in items if m.get("media_type") == "VIDEO"]
+def list_videos(limit: int = 25, all_pages: bool = False, max_pages: int = 50) -> list[dict]:
+    """Newest-first list of the account's video posts (reels + feed videos).
+
+    all_pages=True follows Instagram's paging to read the whole back catalog.
+    """
+    url = f"{_base()}/{_ig_user_id() or 'me'}/media"
+    params = {"fields": FIELDS, "limit": 100 if all_pages else limit, "access_token": access_token()}
+    videos: list[dict] = []
+    for _ in range(max_pages if all_pages else 1):
+        r = requests.get(url, params=params, timeout=30)
+        if not r.ok:
+            raise PlatformError(f"Instagram list failed: {r.status_code} {r.text[:300]}")
+        body = r.json()
+        videos += [m for m in body.get("data", []) if m.get("media_type") == "VIDEO"]
+        url = body.get("paging", {}).get("next")
+        params = None  # the "next" link already carries every parameter
+        if not url:
+            break
+    return videos
 
 
 def download(media: dict, dest_dir: Path) -> Path:

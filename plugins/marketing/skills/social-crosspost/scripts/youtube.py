@@ -1,6 +1,7 @@
 """Upload to YouTube with the YouTube Data API v3 (videos.insert, resumable)."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from common import PlatformError, env, get_token, log, probe_video, truncate
@@ -26,6 +27,24 @@ def _service():
     return build("youtube", "v3", credentials=creds, cache_discovery=False)
 
 
+MAX_HASHTAGS = 15  # YouTube ignores every hashtag on a video that has more than 15
+_TAG = re.compile(r"(?<!\w)#\w+")
+
+
+def _cap_hashtags(title: str, description: str, reserve: int = 0) -> str:
+    """Drop description hashtags beyond YouTube's limit (title tags count first)."""
+    budget = MAX_HASHTAGS - reserve - len(_TAG.findall(title))
+    kept = 0
+
+    def keep(m: re.Match) -> str:
+        nonlocal kept
+        kept += 1
+        return m.group(0) if kept <= budget else ""
+
+    out = _TAG.sub(keep, description)
+    return re.sub(r"[ \t]{2,}", " ", out).strip()
+
+
 def build_metadata(caption: str, video: Path, override: dict | None = None) -> dict:
     override = override or {}
     first_line = (caption or "").strip().splitlines()[0] if caption and caption.strip() else "New video"
@@ -34,7 +53,9 @@ def build_metadata(caption: str, video: Path, override: dict | None = None) -> d
     info = probe_video(video)
     is_short = bool(info.get("duration") and info["duration"] <= 180 and
                     info.get("height", 0) >= info.get("width", 1))
-    if is_short and "#shorts" not in (title + description).lower():
+    add_shorts = is_short and "#shorts" not in (title + description).lower()
+    description = _cap_hashtags(title, description, reserve=1 if add_shorts else 0)
+    if add_shorts:
         description = (description + "\n\n#Shorts").strip()
     return {
         "title": truncate(title.replace("<", "").replace(">", ""), 100),
