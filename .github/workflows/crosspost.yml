@@ -1,0 +1,119 @@
+# Instagram -> YouTube + TikTok cross-poster (skill: plugins/marketing/skills/social-crosspost)
+#
+# Runs every hour. While a platform still owes old reels it posts a batch every run
+# (YouTube up to 6, TikTok up to 5; each stops early at the platform's daily cap).
+# Once a platform is caught up it only acts at 08:30, 16:30 and 19:30 America/Detroit.
+#
+# Secrets (Settings -> Secrets and variables -> Actions): IG_ACCESS_TOKEN, IG_USER_ID,
+# YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN, TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET,
+# TIKTOK_REFRESH_TOKEN. Posting history (no secrets) lives on the `crosspost-state` branch.
+name: Instagram cross-post
+
+on:
+  schedule:
+    - cron: "30 * * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Run both platforms now, even outside the normal hours"
+        type: boolean
+        default: false
+
+concurrency:
+  group: crosspost
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # only to save posting history to the crosspost-state branch
+
+jobs:
+  crosspost:
+    if: github.repository == 'majabri/claudeskills'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SKILL: plugins/marketing/skills/social-crosspost
+      CROSSPOST_DATA_DIR: ${{ github.workspace }}/state
+      CROSSPOST_PLATFORMS: youtube,tiktok
+      YT_PRIVACY: public
+      TIKTOK_MODE: inbox
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+      YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+      YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+      TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+      TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+      TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load posting history
+        run: |
+          mkdir -p state
+          if git fetch --depth 1 origin crosspost-state 2>/dev/null; then
+            git show origin/crosspost-state:state.json > state/state.json
+          fi
+          if [ ! -s state/state.json ]; then
+            echo "::error::No posting history on the crosspost-state branch. Refusing to run, so nothing is posted twice."
+            exit 1
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q -r "$SKILL/requirements.txt"
+
+      - name: Decide what runs this hour
+        id: plan
+        run: |
+          hour=$(TZ=America/Detroit date +%H)
+          python3 "$SKILL/scripts/crosspost.py" backlog > backlog.json
+          cat backlog.json
+          for p in youtube tiktok; do
+            old=$(python3 -c "import json;print(json.load(open('backlog.json'))['platforms']['$p']['owed_backlog'])")
+            go=false
+            if [ "${{ inputs.force }}" = "true" ]; then go=true            # manual run
+            elif [ "$old" -gt 0 ]; then go=true                             # backlog left: every hour
+            else case "$hour" in 08|16|19) go=true ;; esac                  # caught up: 8:30, 4:30, 7:30
+            fi
+            echo "$p backlog $old, local hour $hour -> run=$go"
+            echo "$p=$go" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: YouTube
+        if: steps.plan.outputs.youtube == 'true'
+        run: python3 "$SKILL/scripts/crosspost.py" run --platforms youtube --limit 6 --publish --cleanup | tee youtube.json
+
+      - name: TikTok
+        if: steps.plan.outputs.tiktok == 'true'
+        run: python3 "$SKILL/scripts/crosspost.py" run --platforms tiktok --limit 5 --publish --cleanup | tee tiktok.json
+
+      - name: Save posting history
+        if: always()
+        run: |
+          [ -s state/state.json ] || exit 0
+          git config user.name "crosspost-bot"
+          git config user.email "crosspost-bot@users.noreply.github.com"
+          tmp=$(mktemp -d)
+          cp state/state.json "$tmp/state.json"
+          git fetch --depth 1 origin crosspost-state
+          git checkout -q -B crosspost-state origin/crosspost-state
+          cp "$tmp/state.json" state.json
+          git add state.json
+          git diff --cached --quiet || git commit -q -m "Update cross-post history"
+          git push -q origin crosspost-state
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Cross-post run"
+            for f in backlog youtube tiktok; do
+              [ -s "$f.json" ] && { echo "**$f**"; echo '```json'; cat "$f.json"; echo '```'; }
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

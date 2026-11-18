@@ -1,0 +1,5 @@
+# private: keys, tokens, posting history, downloads, venv
+.data/
+.venv/
+__pycache__/
+.pylib/
