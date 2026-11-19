@@ -523,6 +523,54 @@
           "at": "2026-11-19T05:34:35+00:00"
         }
       }
+    },
+    "18261557074166451": {
+      "permalink": "https://www.instagram.com/reel/CxJvfqrLoYf/",
+      "timestamp": "2023-09-14T00:32:10+0000",
+      "posts": {
+        "youtube": {
+          "id": "3Px4ECYR3G4",
+          "url": "https://youtu.be/3Px4ECYR3G4",
+          "privacy": "public",
+          "at": "2026-11-19T06:40:40+00:00"
+        }
+      }
+    },
+    "18026742808625651": {
+      "permalink": "https://www.instagram.com/reel/CxLObGTrLGH/",
+      "timestamp": "2023-09-14T14:23:11+0000",
+      "posts": {
+        "youtube": {
+          "id": "3ZHiZDBPFns",
+          "url": "https://youtu.be/3ZHiZDBPFns",
+          "privacy": "public",
+          "at": "2026-11-19T06:40:43+00:00"
+        }
+      }
+    },
+    "18231575179242287": {
+      "permalink": "https://www.instagram.com/reel/CxV4OcBL7y_/",
+      "timestamp": "2023-09-18T17:39:31+0000",
+      "posts": {
+        "youtube": {
+          "id": "s1BUFMnnQPE",
+          "url": "https://youtu.be/s1BUFMnnQPE",
+          "privacy": "public",
+          "at": "2026-11-19T06:40:45+00:00"
+        }
+      }
+    },
+    "17881108946941539": {
+      "permalink": "https://www.instagram.com/reel/CxZCZLXrEcD/",
+      "timestamp": "2023-09-19T23:06:01+0000",
+      "posts": {
+        "youtube": {
+          "id": "_o8wrASb4kY",
+          "url": "https://youtu.be/_o8wrASb4kY",
+          "privacy": "public",
+          "at": "2026-11-19T06:40:48+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00"
