@@ -337,6 +337,13 @@
           "url": "https://youtu.be/xzj6X5DgwSY",
           "privacy": "public",
           "at": "2026-11-18T05:34:16+00:00"
+        },
+        "tiktok": {
+          "id": "v_inbox_file~v2.7710510450819008543",
+          "status": "SEND_TO_USER_INBOX",
+          "privacy": "draft (finish in TikTok app inbox)",
+          "mode": "inbox",
+          "at": "2026-11-21T06:39:38+00:00"
         }
       }
     },
@@ -753,6 +760,12 @@
           "privacy": "draft (finish in TikTok app inbox)",
           "mode": "inbox",
           "at": "2026-11-21T04:34:47+00:00"
+        },
+        "youtube": {
+          "id": "bEpMOMExKhI",
+          "url": "https://youtu.be/bEpMOMExKhI",
+          "privacy": "public",
+          "at": "2026-11-21T06:38:47+00:00"
         }
       }
     },
@@ -766,6 +779,12 @@
           "privacy": "draft (finish in TikTok app inbox)",
           "mode": "inbox",
           "at": "2026-11-21T04:35:32+00:00"
+        },
+        "youtube": {
+          "id": "AwZxZMdzJkc",
+          "url": "https://youtu.be/AwZxZMdzJkc",
+          "privacy": "public",
+          "at": "2026-11-21T06:38:49+00:00"
         }
       }
     },
@@ -779,6 +798,48 @@
           "privacy": "draft (finish in TikTok app inbox)",
           "mode": "inbox",
           "at": "2026-11-21T04:36:10+00:00"
+        },
+        "youtube": {
+          "id": "SLv3KTg8cQw",
+          "url": "https://youtu.be/SLv3KTg8cQw",
+          "privacy": "public",
+          "at": "2026-11-21T06:38:51+00:00"
+        }
+      }
+    },
+    "17988002981371602": {
+      "permalink": "https://www.instagram.com/reel/Cxxi7hgr8Dq/",
+      "timestamp": "2023-09-29T11:32:17+0000",
+      "posts": {
+        "youtube": {
+          "id": "WojifC5VpfE",
+          "url": "https://youtu.be/WojifC5VpfE",
+          "privacy": "public",
+          "at": "2026-11-21T06:38:53+00:00"
+        }
+      }
+    },
+    "18295618753193688": {
+      "permalink": "https://www.instagram.com/reel/Cx2uqEvrtvb/",
+      "timestamp": "2023-10-01T11:50:43+0000",
+      "posts": {
+        "youtube": {
+          "id": "HBUdKNg99gQ",
+          "url": "https://youtu.be/HBUdKNg99gQ",
+          "privacy": "public",
+          "at": "2026-11-21T06:38:55+00:00"
+        }
+      }
+    },
+    "17862392157599717": {
+      "permalink": "https://www.instagram.com/reel/DVRgKhnIJ_t/",
+      "timestamp": "2026-02-27T19:42:24+0000",
+      "posts": {
+        "youtube": {
+          "id": "plA3hbUy_yI",
+          "url": "https://youtu.be/plA3hbUy_yI",
+          "privacy": "public",
+          "at": "2026-11-21T06:38:57+00:00"
         }
       }
     }
