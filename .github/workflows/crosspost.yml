@@ -35,6 +35,8 @@ jobs:
       SKILL: plugins/marketing/skills/social-crosspost
       CROSSPOST_DATA_DIR: ${{ github.workspace }}/state
       CROSSPOST_PLATFORMS: youtube,tiktok
+      # Only reels whose caption has this tag are cross-posted (Kings episodes only)
+      CROSSPOST_REQUIRE_TAG: "#DadAndHisLittleKings"
       YT_PRIVACY: public
       # Used only when an Instagram reel has no caption (instead of "New video")
       YT_FALLBACK_TITLE: "Dad vs the Kings 👑 | Abou Keresh & Three Kings"

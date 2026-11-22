@@ -115,6 +115,13 @@ def _age_hours(ts: str | None) -> float:
     return (datetime.now(timezone.utc) - t).total_seconds() / 3600
 
 
+def _wanted(v: dict) -> bool:
+    """CROSSPOST_REQUIRE_TAG (e.g. "#DadAndHisLittleKings"): only reels whose caption
+    contains it are cross-posted; everything else is left alone. Unset = post everything."""
+    tag = (env("CROSSPOST_REQUIRE_TAG", "") or "").strip().lower()
+    return not tag or tag in (v.get("caption") or "").lower()
+
+
 def _new_videos(limit: int, platforms: list[str] | None = None) -> list[dict]:
     """Videos still owed to at least one platform.
 
@@ -128,7 +135,7 @@ def _new_videos(limit: int, platforms: list[str] | None = None) -> list[dict]:
     owed = []
     for v in instagram.list_videos(all_pages=True):
         rec = handled.get(v["id"], {})
-        if rec.get("baseline") or rec.get("skipped"):
+        if rec.get("baseline") or rec.get("skipped") or not _wanted(v):
             continue
         if all(p in rec.get("posts", {}) for p in platforms):
             continue
@@ -179,7 +186,7 @@ def cmd_backlog(args) -> int:
         owed = owed_old = skipped = done = 0
         for v in vids:
             rec = handled.get(v["id"], {})
-            if rec.get("skipped"):
+            if rec.get("skipped") or not _wanted(v):
                 skipped += 1
             elif p in rec.get("posts", {}):
                 done += 1
