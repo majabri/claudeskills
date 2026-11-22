@@ -59,10 +59,24 @@ def _tokens_path() -> Path:
     return data_dir() / "tokens.json"
 
 
+def _fernet():
+    """Fernet cipher from CROSSPOST_TOKEN_KEY, or None. Used only in the cloud, where the
+    newest (rotated/refreshed) sign-ins are kept as tokens.enc next to the posting history."""
+    key = os.environ.get("CROSSPOST_TOKEN_KEY")
+    if not key:
+        return None
+    from cryptography.fernet import Fernet
+    return Fernet(key.encode())
+
+
 def load_tokens() -> dict:
     p = _tokens_path()
     if p.exists():
         return json.loads(p.read_text())
+    enc = data_dir() / "tokens.enc"
+    f = _fernet()
+    if f and enc.exists():
+        return json.loads(f.decrypt(enc.read_bytes()))
     return {}
 
 
@@ -75,6 +89,9 @@ def save_token(platform: str, data: dict) -> None:
         os.chmod(p, 0o600)
     except OSError:
         pass
+    f = _fernet()
+    if f:
+        (data_dir() / "tokens.enc").write_bytes(f.encrypt(json.dumps(tokens).encode()))
 
 
 def get_token(platform: str, key: str, env_name: str | None = None) -> str | None:

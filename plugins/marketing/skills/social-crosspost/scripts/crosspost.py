@@ -6,6 +6,7 @@ Commands (all print JSON to stdout, progress to stderr):
   baseline               mark every current Instagram video as already handled (run once)
   include-old            undo baseline: make the back catalog eligible (backfill)
   backlog                how many videos each platform still owes; "caught_up": true/false
+  cooldown               platforms resting after a limit (no API calls)
   list [--limit N]       videos still owed (recent first, then the backlog oldest-first)
   run  [--ids A,B]       DRY RUN: show exactly what would be posted where
   run  ... --publish     actually download and post
@@ -88,6 +89,8 @@ def cmd_doctor(_args) -> int:
         report[platform] = {"ready": not missing, "missing": missing}
     import shutil
     report["ffprobe"] = bool(shutil.which("ffprobe"))
+    import instagram
+    report["instagram_connection"] = instagram.connection_type()
     report["data_dir"] = str(data_dir())
     report["settings"] = {"TIKTOK_MODE": env("TIKTOK_MODE", "inbox"),
                           "YT_PRIVACY": env("YT_PRIVACY", "public"),
@@ -152,6 +155,36 @@ def _record(mid: str, meta: dict, platform: str | None = None, result: dict | No
         if skipped:
             rec["skipped"] = {"reason": skipped, "at": _now()}
         save_state(state)
+
+
+# After a platform hits its cap, don't touch Instagram for it again until this many hours pass.
+COOLDOWN_HOURS = {"youtube": 12, "tiktok": 3, "x": 6}
+
+
+def _set_cooldown(platform: str, reason: str | None) -> None:
+    with common.state_lock():
+        state = load_state()
+        cd = state.setdefault("cooldown", {})
+        if reason:
+            cd[platform] = {"at": _now(), "reason": reason[:200]}
+        else:
+            cd.pop(platform, None)
+        save_state(state)
+
+
+def cmd_cooldown(args) -> int:
+    """Which platforms are resting after hitting a limit. Reads only local state (no API calls)."""
+    platforms = _platforms(args.platforms)
+    cd = load_state().get("cooldown", {})
+    out = {}
+    for p in platforms:
+        rec = cd.get(p)
+        hrs = float(env(f"{p.upper()}_COOLDOWN_HOURS", str(COOLDOWN_HOURS.get(p, 6))))
+        resting = bool(rec) and _age_hours(rec["at"].replace("+00:00", "+0000")) < hrs
+        out[p] = {"resting": resting, **({"since": rec["at"], "reason": rec["reason"]} if rec else {})}
+    out["all_resting"] = all(v["resting"] for v in out.values())
+    _out(out)
+    return 0
 
 
 def cmd_include_old(_args) -> int:
@@ -275,12 +308,16 @@ def cmd_run(args) -> int:
             try:
                 res = _module(p).upload(path, caption, ov)
                 _record(v["id"], v, p, {**res, "at": _now()})  # saved per platform: no double posts
+                if load_state().get("cooldown", {}).get(p):
+                    _set_cooldown(p, None)
                 entry["results"][p] = {"ok": True, **res}
             except (PlatformError, ConfigError) as e:
                 msg = str(e)
                 entry["results"][p] = {"ok": False, "error": msg}
                 if any(m in msg for m in CAP_MARKERS.get(p, ())):
                     capped[p] = msg[:200]
+                    if args.publish:
+                        _set_cooldown(p, msg)
                     entry["results"][p]["capped"] = True
             except Exception as e:  # noqa: BLE001
                 entry["results"][p] = {"ok": False, "error": f"{type(e).__name__}: {e}"}
@@ -326,6 +363,8 @@ def main() -> int:
     sub.add_parser("baseline")
     sub.add_parser("include-old")
     sub.add_parser("status")
+    p_cool = sub.add_parser("cooldown")
+    p_cool.add_argument("--platforms")
     p_back = sub.add_parser("backlog")
     p_back.add_argument("--platforms")
     p_list = sub.add_parser("list")
@@ -341,7 +380,7 @@ def main() -> int:
     args = ap.parse_args()
     try:
         return {"doctor": cmd_doctor, "baseline": cmd_baseline, "include-old": cmd_include_old,
-                "backlog": cmd_backlog, "list": cmd_list, "run": cmd_run,
+                "backlog": cmd_backlog, "cooldown": cmd_cooldown, "list": cmd_list, "run": cmd_run,
                 "status": cmd_status}[args.cmd](args)
     except (ConfigError, PlatformError) as e:
         _out({"error": str(e)})

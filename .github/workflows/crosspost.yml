@@ -48,6 +48,10 @@ jobs:
       TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
       TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
       TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+      # Optional: encrypts refreshed sign-ins (tokens.enc on the history branch)
+      CROSSPOST_TOKEN_KEY: ${{ secrets.CROSSPOST_TOKEN_KEY }}
+      # Read Instagram once per run (all steps share the result)
+      IG_CACHE_SECONDS: "1800"
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +60,7 @@ jobs:
           mkdir -p state
           if git fetch --depth 1 origin crosspost-state 2>/dev/null; then
             git show origin/crosspost-state:state.json > state/state.json
+            git show origin/crosspost-state:tokens.enc > state/tokens.enc 2>/dev/null || rm -f state/tokens.enc
           fi
           if [ ! -s state/state.json ]; then
             echo "::error::No posting history on the crosspost-state branch. Refusing to run, so nothing is posted twice."
@@ -75,6 +80,16 @@ jobs:
         id: plan
         run: |
           hour=$(TZ=America/Detroit date +%H)
+          force="${{ inputs.force }}"
+          # 1) Platforms resting after a limit are skipped without calling any API.
+          python3 "$SKILL/scripts/crosspost.py" cooldown > cooldown.json; cat cooldown.json
+          rest() { python3 -c "import json;print(str(json.load(open('cooldown.json'))['$1']['resting']).lower())"; }
+          if [ "$force" != "true" ] && [ "$(python3 -c "import json;print(json.load(open('cooldown.json'))['all_resting'])")" = "True" ]; then
+            echo "Both platforms are resting after hitting their limits; not reading Instagram this hour."
+            echo "youtube=false" >> "$GITHUB_OUTPUT"; echo "tiktok=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # 2) One Instagram read (cached for the steps below).
           if ! python3 "$SKILL/scripts/crosspost.py" backlog > backlog.json; then
             echo "::error::Could not check Instagram/backlog: $(cat backlog.json)"
             exit 1
@@ -83,11 +98,12 @@ jobs:
           for p in youtube tiktok; do
             old=$(python3 -c "import json;print(json.load(open('backlog.json'))['platforms']['$p']['owed_backlog'])")
             go=false
-            if [ "${{ inputs.force }}" = "true" ]; then go=true            # manual run
+            if [ "$force" = "true" ]; then go=true                          # manual run
+            elif [ "$(rest $p)" = "true" ]; then go=false                   # at its limit: rest
             elif [ "$old" -gt 0 ]; then go=true                             # backlog left: every hour
             else case "$hour" in 08|16|19) go=true ;; esac                  # caught up: 8:30, 4:30, 7:30
             fi
-            echo "$p backlog $old, local hour $hour -> run=$go"
+            echo "$p backlog $old, resting $(rest $p), local hour $hour -> run=$go"
             echo "$p=$go" >> "$GITHUB_OUTPUT"
           done
 
@@ -107,10 +123,12 @@ jobs:
           git config user.email "crosspost-bot@users.noreply.github.com"
           tmp=$(mktemp -d)
           cp state/state.json "$tmp/state.json"
+          [ -s state/tokens.enc ] && cp state/tokens.enc "$tmp/tokens.enc"   # encrypted; never tokens.json
           git fetch --depth 1 origin crosspost-state
           git checkout -q -B crosspost-state origin/crosspost-state
           cp "$tmp/state.json" state.json
           git add state.json
+          if [ -s "$tmp/tokens.enc" ]; then cp "$tmp/tokens.enc" tokens.enc; git add tokens.enc; fi
           git diff --cached --quiet || git commit -q -m "Update cross-post history"
           git push -q origin crosspost-state
 
@@ -119,7 +137,7 @@ jobs:
         run: |
           {
             echo "### Cross-post run"
-            for f in backlog youtube tiktok; do
+            for f in cooldown backlog youtube tiktok; do
               [ -s "$f.json" ] && { echo "**$f**"; echo '```json'; cat "$f.json"; echo '```'; }
             done
           } >> "$GITHUB_STEP_SUMMARY"
