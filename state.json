@@ -283,6 +283,12 @@
           "url": "https://youtu.be/YtC-wBRCm8s",
           "privacy": "public",
           "at": "2026-11-18T04:34:26+00:00"
+        },
+        "youtube": {
+          "id": "5FfRvgnYaY4",
+          "url": "https://youtu.be/5FfRvgnYaY4",
+          "privacy": "public",
+          "at": "2026-11-22T17:32:44+00:00"
         }
       }
     },
@@ -295,6 +301,19 @@
           "url": "https://youtu.be/uxW3Sb7FUUw",
           "privacy": "public",
           "at": "2026-11-18T04:34:28+00:00"
+        },
+        "youtube": {
+          "id": "4Zz5Kwlx5qc",
+          "url": "https://youtu.be/4Zz5Kwlx5qc",
+          "privacy": "public",
+          "at": "2026-11-22T17:32:46+00:00"
+        },
+        "tiktok": {
+          "id": "v_inbox_file~v2.7711050038734260254",
+          "status": "SEND_TO_USER_INBOX",
+          "privacy": "draft (finish in TikTok app inbox)",
+          "mode": "inbox",
+          "at": "2026-11-22T17:34:25+00:00"
         }
       }
     },
@@ -316,6 +335,19 @@
           "url": "https://youtu.be/TnvrAROZuPc",
           "privacy": "public",
           "at": "2026-11-18T04:34:31+00:00"
+        },
+        "youtube": {
+          "id": "O-P9mUeQQ70",
+          "url": "https://youtu.be/O-P9mUeQQ70",
+          "privacy": "public",
+          "at": "2026-11-22T17:32:48+00:00"
+        },
+        "tiktok": {
+          "id": "v_inbox_file~v2.7711050429718906911",
+          "status": "SEND_TO_USER_INBOX",
+          "privacy": "draft (finish in TikTok app inbox)",
+          "mode": "inbox",
+          "at": "2026-11-22T17:35:45+00:00"
         }
       }
     },
@@ -953,6 +985,12 @@
           "privacy": "draft (finish in TikTok app inbox)",
           "mode": "inbox",
           "at": "2026-11-22T17:16:36+00:00"
+        },
+        "youtube": {
+          "id": "3f4BD_qOgfc",
+          "url": "https://youtu.be/3f4BD_qOgfc",
+          "privacy": "public",
+          "at": "2026-11-22T17:32:40+00:00"
         }
       }
     },
@@ -966,6 +1004,12 @@
           "privacy": "draft (finish in TikTok app inbox)",
           "mode": "inbox",
           "at": "2026-11-22T17:17:14+00:00"
+        },
+        "youtube": {
+          "id": "ky1aPf2uk3o",
+          "url": "https://youtu.be/ky1aPf2uk3o",
+          "privacy": "public",
+          "at": "2026-11-22T17:32:42+00:00"
         }
       }
     }
