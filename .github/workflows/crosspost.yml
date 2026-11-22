@@ -36,6 +36,9 @@ jobs:
       CROSSPOST_DATA_DIR: ${{ github.workspace }}/state
       CROSSPOST_PLATFORMS: youtube,tiktok
       YT_PRIVACY: public
+      # Used only when an Instagram reel has no caption (instead of "New video")
+      YT_FALLBACK_TITLE: "Dad vs the Kings 👑 | Abou Keresh & Three Kings"
+      YT_FALLBACK_DESCRIPTION: "DAD & HIS LITTLE KINGS 👑 Family comedy, 3 episodes a day. Dad vs the clock. Kings vs the plan 😂\n\nFollow the kings on Instagram: @abookrsh3kings"
       TIKTOK_MODE: inbox
       IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
@@ -72,7 +75,10 @@ jobs:
         id: plan
         run: |
           hour=$(TZ=America/Detroit date +%H)
-          python3 "$SKILL/scripts/crosspost.py" backlog > backlog.json
+          if ! python3 "$SKILL/scripts/crosspost.py" backlog > backlog.json; then
+            echo "::error::Could not check Instagram/backlog: $(cat backlog.json)"
+            exit 1
+          fi
           cat backlog.json
           for p in youtube tiktok; do
             old=$(python3 -c "import json;print(json.load(open('backlog.json'))['platforms']['$p']['owed_backlog'])")

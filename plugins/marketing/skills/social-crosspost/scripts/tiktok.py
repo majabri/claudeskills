@@ -17,7 +17,7 @@ import requests
 from common import PlatformError, env, get_token, save_token, truncate
 
 API = "https://open.tiktokapis.com/v2"
-MIN_CHUNK = 5 * 1024 * 1024
+SINGLE_MAX = 64 * 1024 * 1024
 CHUNK = 10 * 1024 * 1024
 
 
@@ -56,10 +56,11 @@ def _post(path: str, token: str, body: dict) -> dict:
 
 
 def _chunk_plan(size: int) -> tuple[int, int]:
-    if size <= MIN_CHUNK:
+    # TikTok rejects a single-chunk upload whose chunk_size differs from video_size
+    # ("The chunk size is invalid"), so anything up to the 64 MB chunk cap goes whole.
+    if size <= SINGLE_MAX:
         return size, 1
-    chunk = min(CHUNK, size)
-    return chunk, max(1, math.floor(size / chunk))  # last chunk absorbs the remainder
+    return CHUNK, math.floor(size / CHUNK)  # >= 6 chunks; last absorbs the remainder (< 2x CHUNK)
 
 
 def _upload_file(upload_url: str, video: Path, size: int, chunk: int, count: int) -> None:

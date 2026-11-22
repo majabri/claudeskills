@@ -47,9 +47,10 @@ def _cap_hashtags(title: str, description: str, reserve: int = 0) -> str:
 
 def build_metadata(caption: str, video: Path, override: dict | None = None) -> dict:
     override = override or {}
-    first_line = (caption or "").strip().splitlines()[0] if caption and caption.strip() else "New video"
+    has_caption = bool(caption and caption.strip())
+    first_line = caption.strip().splitlines()[0] if has_caption else env("YT_FALLBACK_TITLE", "New video")
     title = override.get("title") or first_line
-    description = override.get("description") or (caption or "")
+    description = override.get("description") or (caption if has_caption else env("YT_FALLBACK_DESCRIPTION", ""))
     info = probe_video(video)
     is_short = bool(info.get("duration") and info["duration"] <= 180 and
                     info.get("height", 0) >= info.get("width", 1))
