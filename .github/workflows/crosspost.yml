@@ -38,6 +38,7 @@ jobs:
       # Only reels whose caption has this tag are cross-posted (Kings episodes only)
       CROSSPOST_REQUIRE_TAG: "#DadAndHisLittleKings"
       YT_PRIVACY: public
+      YT_MADE_FOR_KIDS: "true"   # channel is set as made for kids (COPPA)
       # Used only when an Instagram reel has no caption (instead of "New video")
       YT_FALLBACK_TITLE: "Dad vs the Kings 👑 | Abou Keresh & Three Kings"
       YT_FALLBACK_DESCRIPTION: "DAD & HIS LITTLE KINGS 👑 Family comedy, 3 episodes a day. Dad vs the clock. Kings vs the plan 😂\n\nFollow the kings on Instagram: @abookrsh3kings"

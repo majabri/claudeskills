@@ -75,7 +75,8 @@ def upload(video: Path, caption: str, override: dict | None = None) -> dict:
     body = {
         "snippet": {"title": meta["title"], "description": meta["description"],
                     "categoryId": meta["category"]},
-        "status": {"privacyStatus": meta["privacy"], "selfDeclaredMadeForKids": False},
+        "status": {"privacyStatus": meta["privacy"],
+                   "selfDeclaredMadeForKids": env("YT_MADE_FOR_KIDS", "false").lower() == "true"},
     }
     media = MediaFileUpload(str(video), mimetype="video/*", chunksize=8 << 20, resumable=True)
     try:
