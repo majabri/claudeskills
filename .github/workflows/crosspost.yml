@@ -75,7 +75,10 @@ jobs:
         id: plan
         run: |
           hour=$(TZ=America/Detroit date +%H)
-          python3 "$SKILL/scripts/crosspost.py" backlog > backlog.json
+          if ! python3 "$SKILL/scripts/crosspost.py" backlog > backlog.json; then
+            echo "::error::Could not check Instagram/backlog: $(cat backlog.json)"
+            exit 1
+          fi
           cat backlog.json
           for p in youtube tiktok; do
             old=$(python3 -c "import json;print(json.load(open('backlog.json'))['platforms']['$p']['owed_backlog'])")
