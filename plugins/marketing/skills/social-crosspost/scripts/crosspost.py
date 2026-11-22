@@ -299,7 +299,7 @@ def _preview(platform: str, caption: str, ov: dict | None) -> dict:
     from common import truncate
     ov = ov or {}
     if platform == "youtube":
-        first = caption.strip().splitlines()[0] if caption.strip() else "New video"
+        first = caption.strip().splitlines()[0] if caption.strip() else env("YT_FALLBACK_TITLE", "New video")
         return {"title": truncate(ov.get("title") or first, 100),
                 "description": truncate(ov.get("description") or caption, 300),
                 "privacy": ov.get("privacy") or env("YT_PRIVACY", "public")}
