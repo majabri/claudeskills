@@ -20,6 +20,20 @@ packages in `.pylib/` (`pip install --target .pylib -r requirements.txt`).
 3. Claude's own cloud workspace usually blocks these hosts. If a request is refused by the
    network allowlist, don't retry another way; switch to option 1 or 2.
 
+## Meta (Facebook/Instagram) safety rules
+
+The account's ad access was restricted once after an automated Meta setup. Never again:
+- **Never automate facebook.com, business.facebook.com or developers.facebook.com** (no
+  browser clicking, typing or popups there). Give the user exact steps and let them click.
+- **Use "Instagram API with Instagram Login" only**: permission `instagram_business_basic`,
+  app in Development mode, the Instagram account added as tester. No Facebook Page, no
+  business portfolio, no Facebook Login for Business configuration, no ads/messaging/
+  publishing permissions, no business verification or app review.
+- Never create, rename or link business portfolios, ad accounts or Pages for this job.
+- Keep Instagram reads light: one read per run (IG_CACHE_SECONDS), skip runs while every
+  destination is resting after a limit (`crosspost.py cooldown`).
+- Only read the user's own account; never scrape or use unofficial Instagram endpoints.
+
 ## First-time setup
 
 If `python3 scripts/crosspost.py doctor` shows platforms not ready, follow

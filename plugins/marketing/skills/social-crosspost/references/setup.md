@@ -18,21 +18,22 @@ mkdir -p .data && cp assets/.env.example .data/.env
 pip install --target .pylib -r requirements.txt   # scripts find .pylib automatically
 ```
 
-## 1. Instagram (source)
-The account must be Professional (Business or Creator).
+## 1. Instagram (source): Instagram Login only
+The account must be Professional (Business or Creator). Do every Meta step by hand: never
+automate Facebook or Meta pages (see SKILL.md, Meta safety rules).
 
-1. developers.facebook.com → register as a developer → **Create app** → use case
-   **"Manage messaging & content on Instagram"** → skip the business portfolio for now.
-2. Newer apps only offer **API setup with Unified login**, which needs a business portfolio:
-   connect or create one.
-3. **App roles → Add people → Instagram Tester →** your Instagram username.
-   Accept it at instagram.com → Settings → Apps and websites → **Tester Invites**
-   (the tab only appears while an invite is pending, and only for the invited account).
-4. Back in API setup: **Create new configuration** (system-user token, never expires),
-   then **Generate token** (click it yourself; it opens a popup) and pick the portfolio that
-   owns the Instagram account.
-5. Click **Copy**, run `bash scripts/save-token.sh`, and set `IG_USER_ID` in `.env` to the
-   number shown under the account name.
+1. developers.facebook.com → **Create app** → use case **"Manage messaging & content on
+   Instagram"** → when asked about a business portfolio, choose **not now / skip**.
+2. Use the **API setup with Instagram login** tab (not "Facebook login" or "Unified login").
+   Permissions: keep only **instagram_business_basic**. Leave the app in Development mode.
+3. **Add account / Generate token** for your Instagram account and log in to Instagram when
+   asked. (If it asks you to accept a tester invite first: instagram.com → Settings →
+   Apps and websites → Tester Invites.)
+4. Copy the token (it starts with `IG`), run `bash scripts/save-token.sh`, and make sure
+   `IG_USER_ID` in `.data/.env` is **empty**. `crosspost.py doctor` should show
+   `"instagram_connection": "instagram_login"`.
+5. Cloud: run `bash scripts/push-secrets.sh`. It also creates `CROSSPOST_TOKEN_KEY`, so the
+   job can refresh this ~60-day token itself and keep it encrypted (`tokens.enc`).
 
 ## 2. YouTube
 1. console.cloud.google.com → new project → enable **YouTube Data API v3**.

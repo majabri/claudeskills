@@ -8,18 +8,25 @@ Two token types work:
 """
 from __future__ import annotations
 
+import json
+import os
 import time
 from pathlib import Path
 
 import requests
 
-from common import PlatformError, env, get_token, log, save_token
+from common import PlatformError, data_dir, env, get_token, log, save_token
 
 FIELDS = "id,caption,media_type,media_product_type,media_url,thumbnail_url,permalink,timestamp"
 
 
 def _ig_user_id() -> str | None:
     return env("IG_USER_ID") or None
+
+
+def connection_type() -> str:
+    """'facebook_login' (Meta business app + IG_USER_ID) or 'instagram_login' (Instagram-only app)."""
+    return "facebook_login" if _ig_user_id() else "instagram_login"
 
 
 def _base() -> str:
@@ -42,6 +49,8 @@ def refresh_if_due(max_age_days: int = 7) -> None:
     if _ig_user_id():
         return  # Facebook-login / system-user tokens are not refreshed this way
     saved = load_tokens().get("instagram", {})
+    if not saved and os.environ.get("GITHUB_ACTIONS") and not os.environ.get("CROSSPOST_TOKEN_KEY"):
+        return  # in the cloud without a place to keep a refreshed token: don't refresh every run
     last = saved.get("saved_at", 0)
     if time.time() - last < max_age_days * 86400:
         return
@@ -60,8 +69,14 @@ def refresh_if_due(max_age_days: int = 7) -> None:
 def list_videos(limit: int = 25, all_pages: bool = False, max_pages: int = 50) -> list[dict]:
     """Newest-first list of the account's video posts (reels + feed videos).
 
-    all_pages=True follows Instagram's paging to read the whole back catalog.
+    all_pages=True follows Instagram's paging to read the whole back catalog. With
+    IG_CACHE_SECONDS set, a full read is reused for that long, so one job run reads
+    Instagram once instead of once per step.
     """
+    ttl = int(env("IG_CACHE_SECONDS", "0") or 0)
+    cache = data_dir() / "ig_cache.json"
+    if all_pages and ttl > 0 and cache.exists() and time.time() - cache.stat().st_mtime < ttl:
+        return json.loads(cache.read_text())
     url = f"{_base()}/{_ig_user_id() or 'me'}/media"
     params = {"fields": FIELDS, "limit": 100 if all_pages else limit, "access_token": access_token()}
     videos: list[dict] = []
@@ -75,6 +90,8 @@ def list_videos(limit: int = 25, all_pages: bool = False, max_pages: int = 50) -
         params = None  # the "next" link already carries every parameter
         if not url:
             break
+    if all_pages and ttl > 0:
+        cache.write_text(json.dumps(videos))
     return videos
 
 
