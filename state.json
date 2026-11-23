@@ -1006,6 +1006,14 @@
           "url": "https://youtu.be/tHShC9jOdxg",
           "privacy": "public",
           "at": "2026-11-22T17:15:11+00:00"
+        },
+        "tiktok": {
+          "id": "6b04cd54c43c1f2f5c6fefde",
+          "status": "SCHEDULED_IN_BUFFER",
+          "due_at": "2026-11-23T23:36:39.000Z",
+          "mode": "buffer",
+          "privacy": "public (published by Buffer)",
+          "at": "2026-11-23T23:33:41+00:00"
         }
       },
       "tiktok_reset_2026_11_23": {
