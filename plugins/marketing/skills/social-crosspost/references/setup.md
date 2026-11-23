@@ -69,6 +69,17 @@ automate Facebook or Meta pages (see SKILL.md, Meta safety rules).
    Sandbox: inbox drafts work; direct posts are forced to "Only me". Apply for TikTok's
    Content Posting audit to post publicly.
 
+### TikTok through Buffer (public posts, free) — `TIKTOK_MODE=buffer`
+TikTok does not audit personal posting tools, so our own app stays on drafts. Instead:
+1. Make a free account at buffer.com and connect the TikTok account (user's own clicks).
+2. Email-verify, then publish.buffer.com/settings/api → create a key → Copy →
+   `bash scripts/save-token.sh BUFFER_API_KEY`.
+3. `BUFFER_TIKTOK_CHANNEL_ID` = the id in the channel's Buffer URL
+   (publish.buffer.com/channels/<id>/schedule).
+4. Cloud: `gh secret set BUFFER_API_KEY` (from .data/.env), and set both in the workflow env.
+Buffer fetches the video from Instagram's media_url, so posts are scheduled ~3 minutes out.
+Free plan: 3 channels, 10 scheduled posts per channel, 3,000 API requests a month.
+
 ## 4. X (optional, paid)
 console.x.com → app → OAuth 2.0 (callback `X_REDIRECT_URI`, read+write) → buy credits →
 `auth.py start x` / `finish`. Add `x` to `CROSSPOST_PLATFORMS`.

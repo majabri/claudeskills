@@ -68,7 +68,8 @@ def cmd_doctor(_args) -> int:
     checks = {
         "instagram": ["IG_ACCESS_TOKEN"],
         "youtube": ["YT_CLIENT_ID", "YT_CLIENT_SECRET", "YT_REFRESH_TOKEN"],
-        "tiktok": ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET", "TIKTOK_REFRESH_TOKEN"],
+        "tiktok": (["BUFFER_API_KEY", "BUFFER_TIKTOK_CHANNEL_ID"] if env("TIKTOK_MODE", "inbox") == "buffer"
+                   else ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET", "TIKTOK_REFRESH_TOKEN"]),
         "x": ["X_CLIENT_ID", "X_REFRESH_TOKEN"],
     }
     tokens = common.load_tokens()
@@ -103,7 +104,8 @@ RECENT_HOURS = 72  # reels newer than this go before the backlog
 # Error text that means "this platform is at its cap for now": stop it for the rest of the run.
 CAP_MARKERS = {
     "youtube": ("uploadLimitExceeded", "quotaExceeded", "rateLimitExceeded", "dailyLimitExceeded"),
-    "tiktok": ("spam_risk", "reached_active_user_cap", "rate_limit_exceeded", "too_many"),
+    "tiktok": ("spam_risk", "reached_active_user_cap", "rate_limit_exceeded", "too_many",
+               "Buffer API 429", "limit"),
     "x": ("429", "Too Many Requests", "402"),
 }
 
@@ -313,7 +315,8 @@ def cmd_run(args) -> int:
             ov = overrides.get(v["id"], {}).get(p)
             log(f"Posting {v['id']} to {p} ...")
             try:
-                res = _module(p).upload(path, caption, ov)
+                extra = {"source_url": v.get("media_url")} if p == "tiktok" else {}
+                res = _module(p).upload(path, caption, ov, **extra)
                 _record(v["id"], v, p, {**res, "at": _now()})  # saved per platform: no double posts
                 if load_state().get("cooldown", {}).get(p):
                     _set_cooldown(p, None)

@@ -42,7 +42,10 @@ jobs:
       # Used only when an Instagram reel has no caption (instead of "New video")
       YT_FALLBACK_TITLE: "Dad vs the Kings 👑 | Abou Keresh & Three Kings"
       YT_FALLBACK_DESCRIPTION: "DAD & HIS LITTLE KINGS 👑 Family comedy, 3 episodes a day. Dad vs the clock. Kings vs the plan 😂\n\nFollow the kings on Instagram: @abookrsh3kings"
-      TIKTOK_MODE: inbox
+      # TikTok goes through Buffer (audited TikTok partner, free plan) so posts go public.
+      TIKTOK_MODE: buffer
+      BUFFER_TIKTOK_CHANNEL_ID: "6b0472dc8541f09ecb794519"   # @abookrsh3kings in Buffer
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
       YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
@@ -103,6 +106,8 @@ jobs:
             go=false
             if [ "$force" = "true" ]; then go=true                          # manual run
             elif [ "$(rest $p)" = "true" ]; then go=false                   # at its limit: rest
+            elif [ "$p" = tiktok ] && [ "$old" -gt 0 ]; then                # TikTok backlog: 1 every 2 hours, 8am-10pm
+              case "$hour" in 08|10|12|14|16|18|20|22) go=true ;; esac        # (about 8 a day, so TikTok doesn't see spam)
             elif [ "$old" -gt 0 ]; then go=true                             # backlog left: every hour
             else case "$hour" in 08|16|19) go=true ;; esac                  # caught up: 8:30, 4:30, 7:30
             fi
@@ -116,7 +121,7 @@ jobs:
 
       - name: TikTok
         if: steps.plan.outputs.tiktok == 'true'
-        run: python3 "$SKILL/scripts/crosspost.py" run --platforms tiktok --limit 5 --publish --cleanup | tee tiktok.json
+        run: python3 "$SKILL/scripts/crosspost.py" run --platforms tiktok --limit 1 --publish --cleanup | tee tiktok.json
 
       - name: Save posting history
         if: always()

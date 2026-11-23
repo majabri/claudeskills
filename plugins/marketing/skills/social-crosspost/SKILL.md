@@ -100,6 +100,10 @@ If `python3 scripts/crosspost.py doctor` shows platforms not ready, follow
   taps to publish within 24h, at most 5 pending drafts per 24h. `direct` publishes
   automatically, but before TikTok's app audit it is forced to private and the account must
   be private. Suggest switching to `direct` once the audit passes.
+  `buffer` (recommended for personal accounts) hands the reel to Buffer's free plan, an
+  audited TikTok partner, which publishes it publicly. TikTok's audit is not granted to
+  personal "upload to my own account" tools, so `direct` will stay private. Never automate
+  the TikTok website instead: TikTok bans bots, and it would put the account at risk.
 - **X** (optional, off by default): pay-per-use, no free tier. Links are stripped by default (`X_STRIP_LINKS=true`)
   because a link raises the price. Videos over 140s are skipped (`X_MAX_SECONDS`).
 

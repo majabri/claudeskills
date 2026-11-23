@@ -1,6 +1,8 @@
 """Post to TikTok with the Content Posting API.
 
-Two modes (TIKTOK_MODE):
+Three modes (TIKTOK_MODE):
+  buffer - hands the reel to Buffer (an audited TikTok partner), which publishes it
+           publicly. Needs BUFFER_API_KEY and BUFFER_TIKTOK_CHANNEL_ID. See buffer.py.
   inbox  - uploads as a draft to the TikTok app inbox; you finish and publish in the app.
            Works before your app passes TikTok's audit. (default)
   direct - publishes straight to the profile. Before the audit, TikTok forces
@@ -79,8 +81,12 @@ def _upload_file(upload_url: str, video: Path, size: int, chunk: int, count: int
                 raise PlatformError(f"TikTok chunk {i + 1}/{count} failed: {r.status_code} {r.text[:200]}")
 
 
-def upload(video: Path, caption: str, override: dict | None = None) -> dict:
+def upload(video: Path, caption: str, override: dict | None = None,
+           source_url: str | None = None) -> dict:
     override = override or {}
+    if (override.get("mode") or env("TIKTOK_MODE", "inbox")) == "buffer":
+        import buffer
+        return buffer.upload_tiktok(caption, source_url or "", override)
     token = _refresh()
     size = video.stat().st_size
     chunk, count = _chunk_plan(size)
