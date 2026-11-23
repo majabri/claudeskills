@@ -1060,15 +1060,21 @@
           "url": "https://youtu.be/sh_FXG-fXCI",
           "privacy": "public",
           "at": "2026-11-23T17:53:55+00:00"
-        },
-        "tiktok": {
-          "id": "6b047dbbcf4a65d44991544a",
-          "status": "SCHEDULED_IN_BUFFER",
-          "due_at": "2026-11-23T17:57:02.000Z",
-          "mode": "buffer",
-          "privacy": "public (published by Buffer)",
-          "at": "2026-11-23T17:54:03+00:00"
         }
+      },
+      "failed": {
+        "tiktok": [
+          {
+            "id": "6b047dbbcf4a65d44991544a",
+            "status": "SCHEDULED_IN_BUFFER",
+            "due_at": "2026-11-23T17:57:02.000Z",
+            "mode": "buffer",
+            "privacy": "public (published by Buffer)",
+            "at": "2026-11-23T17:54:03+00:00",
+            "error": "TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
+            "checked_at": "2026-11-23T18:00:09+00:00"
+          }
+        ]
       }
     },
     "18086622218505481": {
@@ -1106,8 +1112,66 @@
           "at": "2026-11-23T17:54:02+00:00"
         }
       }
+    },
+    "18188299285411517": {
+      "permalink": "https://www.instagram.com/reel/DekC7DYibJY/",
+      "timestamp": "2026-10-16T17:15:04+0000",
+      "posts": {
+        "youtube": {
+          "id": "Vv9jDbDiPUc",
+          "url": "https://youtu.be/Vv9jDbDiPUc",
+          "privacy": "public",
+          "at": "2026-11-23T18:00:17+00:00"
+        }
+      }
+    },
+    "18115953785026190": {
+      "permalink": "https://www.instagram.com/reel/DeknSM0juhD/",
+      "timestamp": "2026-10-16T22:32:50+0000",
+      "posts": {
+        "youtube": {
+          "id": "JKV9_5ZsGLA",
+          "url": "https://youtu.be/JKV9_5ZsGLA",
+          "privacy": "public",
+          "at": "2026-11-23T18:00:19+00:00"
+        }
+      }
+    },
+    "18108793976190829": {
+      "permalink": "https://www.instagram.com/reel/DemAtagj_8-/",
+      "timestamp": "2026-10-17T11:34:15+0000",
+      "posts": {
+        "youtube": {
+          "id": "iArWhHkNpU4",
+          "url": "https://youtu.be/iArWhHkNpU4",
+          "privacy": "public",
+          "at": "2026-11-23T18:00:22+00:00"
+        }
+      }
+    },
+    "17952409881317768": {
+      "permalink": "https://www.instagram.com/reel/Demi8waj-64/",
+      "timestamp": "2026-10-17T16:33:25+0000",
+      "posts": {
+        "youtube": {
+          "id": "RMAr8LbM6Eg",
+          "url": "https://youtu.be/RMAr8LbM6Eg",
+          "privacy": "public",
+          "at": "2026-11-23T18:00:24+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
-  "cooldown": {}
+  "cooldown": {
+    "tiktok": {
+      "at": "2026-11-23T18:00:09+00:00",
+      "reason": "PAUSED: TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
+      "paused": true
+    },
+    "youtube": {
+      "at": "2026-11-23T18:00:26+00:00",
+      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
+    }
+  }
 }
