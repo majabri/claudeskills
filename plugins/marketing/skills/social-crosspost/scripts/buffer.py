@@ -72,6 +72,13 @@ def post_video(channel_id: str, video_url: str, text: str) -> dict:
             "mode": "buffer", "privacy": "public (published by Buffer)"}
 
 
+def post_status(post_id: str) -> dict:
+    q = """query($id: PostId!) { post(input: {id: $id}) { status sentAt externalLink error { message } } }"""
+    p = _gql(q, {"id": post_id}).get("post") or {}
+    return {"status": p.get("status"), "sent_at": p.get("sentAt"), "link": p.get("externalLink"),
+            "error": (p.get("error") or {}).get("message")}
+
+
 def upload_tiktok(caption: str, video_url: str, override: dict | None = None) -> dict:
     override = override or {}
     channel = env("BUFFER_TIKTOK_CHANNEL_ID", required=True)

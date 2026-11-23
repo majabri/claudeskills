@@ -82,6 +82,11 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
           pip install -q -r "$SKILL/requirements.txt"
 
+      - name: Check TikTok posts handed to Buffer
+        # Marks posts that went live; puts rejected ones back in line. A TikTok spam flag
+        # pauses TikTok until someone runs: crosspost.py cooldown --clear tiktok
+        run: python3 "$SKILL/scripts/crosspost.py" verify | tee verify.json || true
+
       - name: Decide what runs this hour
         id: plan
         run: |
@@ -145,7 +150,7 @@ jobs:
         run: |
           {
             echo "### Cross-post run"
-            for f in cooldown backlog youtube tiktok; do
+            for f in verify cooldown backlog youtube tiktok; do
               [ -s "$f.json" ] && { echo "**$f**"; echo '```json'; cat "$f.json"; echo '```'; }
             done
           } >> "$GITHUB_STEP_SUMMARY"
