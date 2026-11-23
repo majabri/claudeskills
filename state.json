@@ -894,11 +894,13 @@
         },
         "tiktok": {
           "id": "6b04b11507fee37ee603567b",
-          "status": "SCHEDULED_IN_BUFFER",
+          "status": "PUBLISHED",
           "due_at": "2026-11-23T21:36:09.000Z",
           "mode": "buffer",
           "privacy": "public (published by Buffer)",
-          "at": "2026-11-23T21:33:09+00:00"
+          "at": "2026-11-23T21:33:09+00:00",
+          "url": "https://tiktok.com/@abookrsh3kings/video/7711483922252565773",
+          "sent_at": "2026-11-23T21:36:56.307Z"
         }
       },
       "tiktok_reset_2026_11_23": {
