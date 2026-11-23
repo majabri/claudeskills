@@ -151,6 +151,6 @@ jobs:
           {
             echo "### Cross-post run"
             for f in verify cooldown backlog youtube tiktok; do
-              [ -s "$f.json" ] && { echo "**$f**"; echo '```json'; cat "$f.json"; echo '```'; }
+              if [ -s "$f.json" ]; then echo "**$f**"; echo '```json'; cat "$f.json"; echo '```'; fi
             done
           } >> "$GITHUB_STEP_SUMMARY"
