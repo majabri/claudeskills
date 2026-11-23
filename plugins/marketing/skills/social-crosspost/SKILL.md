@@ -104,6 +104,11 @@ If `python3 scripts/crosspost.py doctor` shows platforms not ready, follow
   audited TikTok partner, which publishes it publicly. TikTok's audit is not granted to
   personal "upload to my own account" tools, so `direct` will stay private. Never automate
   the TikTok website instead: TikTok bans bots, and it would put the account at risk.
+- **Snapchat**: posting API is allowlist-only (Public Profile API, via a Snap account
+  manager / profile-api-dev-support@snapchat.com). Until approved, `scripts/snapchat_pack.py`
+  builds a weekly folder (Kings episodes + ≤160-char Spotlight captions + suggested times)
+  for the user to schedule in Snapchat Profile Manager. OAuth app "Kings Reels Sync" exists;
+  SNAP_CLIENT_ID / SNAP_CLIENT_SECRET and the refresh token are in .data on the Mac.
 - **X** (optional, off by default): pay-per-use, no free tier. Links are stripped by default (`X_STRIP_LINKS=true`)
   because a link raises the price. Videos over 140s are skipped (`X_MAX_SECONDS`).
 
