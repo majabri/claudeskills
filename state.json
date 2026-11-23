@@ -1023,6 +1023,12 @@
           "privacy": "draft (finish in TikTok app inbox)",
           "mode": "inbox",
           "at": "2026-11-23T04:05:07+00:00"
+        },
+        "youtube": {
+          "id": "HmSU2eM35UY",
+          "url": "https://youtu.be/HmSU2eM35UY",
+          "privacy": "public",
+          "at": "2026-11-23T17:53:52+00:00"
         }
       }
     },
@@ -1036,19 +1042,72 @@
           "privacy": "draft (finish in TikTok app inbox)",
           "mode": "inbox",
           "at": "2026-11-23T04:05:45+00:00"
+        },
+        "youtube": {
+          "id": "yK9tdIjH-Js",
+          "url": "https://youtu.be/yK9tdIjH-Js",
+          "privacy": "public",
+          "at": "2026-11-23T17:53:53+00:00"
+        }
+      }
+    },
+    "18135648664769000": {
+      "permalink": "https://www.instagram.com/reel/DgFaL0Gpg_H/",
+      "timestamp": "2026-11-23T12:44:40+0000",
+      "posts": {
+        "youtube": {
+          "id": "sh_FXG-fXCI",
+          "url": "https://youtu.be/sh_FXG-fXCI",
+          "privacy": "public",
+          "at": "2026-11-23T17:53:55+00:00"
+        },
+        "tiktok": {
+          "id": "6b047dbbcf4a65d44991544a",
+          "status": "SCHEDULED_IN_BUFFER",
+          "due_at": "2026-11-23T17:57:02.000Z",
+          "mode": "buffer",
+          "privacy": "public (published by Buffer)",
+          "at": "2026-11-23T17:54:03+00:00"
+        }
+      }
+    },
+    "18086622218505481": {
+      "permalink": "https://www.instagram.com/reel/Dehff9JjkIK/",
+      "timestamp": "2026-10-15T17:27:04+0000",
+      "posts": {
+        "youtube": {
+          "id": "ha0gNGIyDd8",
+          "url": "https://youtu.be/ha0gNGIyDd8",
+          "privacy": "public",
+          "at": "2026-11-23T17:53:57+00:00"
+        }
+      }
+    },
+    "17954176986038706": {
+      "permalink": "https://www.instagram.com/reel/DeiIN1djhLF/",
+      "timestamp": "2026-10-15T23:22:43+0000",
+      "posts": {
+        "youtube": {
+          "id": "wxKemhBGsGc",
+          "url": "https://youtu.be/wxKemhBGsGc",
+          "privacy": "public",
+          "at": "2026-11-23T17:53:59+00:00"
+        }
+      }
+    },
+    "18080590643718790": {
+      "permalink": "https://www.instagram.com/reel/DejhSyijnwi/",
+      "timestamp": "2026-10-16T12:21:08+0000",
+      "posts": {
+        "youtube": {
+          "id": "sr0Zb2P7Jjo",
+          "url": "https://youtu.be/sr0Zb2P7Jjo",
+          "privacy": "public",
+          "at": "2026-11-23T17:54:02+00:00"
         }
       }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
-  "cooldown": {
-    "youtube": {
-      "at": "2026-11-23T16:09:05+00:00",
-      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos th"
-    },
-    "tiktok": {
-      "at": "2026-11-23T16:09:06+00:00",
-      "reason": "TikTok /post/publish/inbox/video/init/ failed: 400 {'code': 'spam_risk_too_many_pending_share', 'message': 'spam_risk_too_many_pending_share', 'log_id': '202611231609060F187AF66E23C70B21A2'}"
-    }
-  }
+  "cooldown": {}
 }
