@@ -115,6 +115,7 @@ If `python3 scripts/crosspost.py doctor` shows platforms not ready, follow
 | Instagram 190 error | Token older than 60 days without refresh | Generate a new token, `auth.py instagram-exchange` |
 | TikTok `unaudited_client_can_only_post_to_private_accounts` | Direct mode before audit | Use `TIKTOK_MODE=inbox` or set the account private |
 | TikTok `spam_risk_too_many_pending_share` | 5 inbox drafts waiting | User publishes or deletes drafts in the app |
+| Buffer post status `error`: "TikTok flagged this post as potential spam" | TikTok blocked the API post (often pending inbox drafts, or many posts in a short time) | `verify` puts it back in line and pauses TikTok. User clears app drafts and posts once by hand in the TikTok app, then `crosspost.py cooldown --clear tiktok` |
 | X 402/403 on post | No credits, or token missing `media.write` | Add credits; re-run `auth.py x` |
 | YouTube `uploadLimitExceeded` | Channel's daily upload cap | Wait 24h |
 

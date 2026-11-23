@@ -6,7 +6,8 @@ Commands (all print JSON to stdout, progress to stderr):
   baseline               mark every current Instagram video as already handled (run once)
   include-old            undo baseline: make the back catalog eligible (backfill)
   backlog                how many videos each platform still owes; "caught_up": true/false
-  cooldown               platforms resting after a limit (no API calls)
+  cooldown [--clear P]   platforms resting after a limit (no API calls); --clear ends a pause
+  verify                 check TikTok posts handed to Buffer (live? rejected -> retry/pause)
   list [--limit N]       videos still owed (recent first, then the backlog oldest-first)
   run  [--ids A,B]       DRY RUN: show exactly what would be posted where
   run  ... --publish     actually download and post
@@ -170,12 +171,13 @@ def _record(mid: str, meta: dict, platform: str | None = None, result: dict | No
 COOLDOWN_HOURS = {"youtube": 12, "tiktok": 3, "x": 6}
 
 
-def _set_cooldown(platform: str, reason: str | None) -> None:
+def _set_cooldown(platform: str, reason: str | None, paused: bool = False) -> None:
+    """paused=True rests the platform until someone runs `cooldown --clear <platform>`."""
     with common.state_lock():
         state = load_state()
         cd = state.setdefault("cooldown", {})
         if reason:
-            cd[platform] = {"at": _now(), "reason": reason[:200]}
+            cd[platform] = {"at": _now(), "reason": reason[:300], **({"paused": True} if paused else {})}
         else:
             cd.pop(platform, None)
         save_state(state)
@@ -184,14 +186,55 @@ def _set_cooldown(platform: str, reason: str | None) -> None:
 def cmd_cooldown(args) -> int:
     """Which platforms are resting after hitting a limit. Reads only local state (no API calls)."""
     platforms = _platforms(args.platforms)
+    for p in (args.clear or "").split(","):
+        if p.strip():
+            _set_cooldown(p.strip(), None)
     cd = load_state().get("cooldown", {})
     out = {}
     for p in platforms:
         rec = cd.get(p)
         hrs = float(env(f"{p.upper()}_COOLDOWN_HOURS", str(COOLDOWN_HOURS.get(p, 6))))
-        resting = bool(rec) and _age_hours(rec["at"].replace("+00:00", "+0000")) < hrs
-        out[p] = {"resting": resting, **({"since": rec["at"], "reason": rec["reason"]} if rec else {})}
+        resting = bool(rec) and (bool(rec.get("paused")) or
+                                 _age_hours(rec["at"].replace("+00:00", "+0000")) < hrs)
+        out[p] = {"resting": resting, **({"since": rec["at"], "reason": rec["reason"],
+                                          "paused": bool(rec.get("paused"))} if rec else {})}
     out["all_resting"] = all(v["resting"] for v in out.values())
+    _out(out)
+    return 0
+
+
+def cmd_verify(_args) -> int:
+    """Check TikTok posts handed to Buffer: mark the ones that went live, and put the ones
+    TikTok rejected back in line. A spam flag pauses TikTok until `cooldown --clear tiktok`."""
+    import buffer
+    state = load_state()
+    pending = {mid: rec["posts"]["tiktok"] for mid, rec in state["media"].items()
+               if rec.get("posts", {}).get("tiktok", {}).get("status") == "SCHEDULED_IN_BUFFER"}
+    out = {"checked": 0, "published": [], "failed": [], "waiting": []}
+    for mid, res in pending.items():
+        try:
+            st = buffer.post_status(res["id"])
+        except PlatformError as e:
+            out["error"] = str(e)
+            break
+        out["checked"] += 1
+        with common.state_lock():
+            state = load_state()
+            rec = state["media"][mid]
+            if st["status"] == "sent":
+                rec["posts"]["tiktok"].update(status="PUBLISHED", url=st.get("link"), sent_at=st.get("sent_at"))
+                out["published"].append(mid)
+            elif st["status"] == "error":
+                rec.setdefault("failed", {}).setdefault("tiktok", []).append(
+                    {**rec["posts"].pop("tiktok"), "error": st.get("error"), "checked_at": _now()})
+                out["failed"].append({"id": mid, "error": st.get("error")})
+            else:
+                out["waiting"].append(mid)
+            save_state(state)
+    spam = [f for f in out["failed"] if "spam" in (f.get("error") or "").lower()]
+    if spam:
+        _set_cooldown("tiktok", "PAUSED: " + spam[0]["error"], paused=True)
+        out["tiktok_paused"] = True
     _out(out)
     return 0
 
@@ -375,6 +418,8 @@ def main() -> int:
     sub.add_parser("status")
     p_cool = sub.add_parser("cooldown")
     p_cool.add_argument("--platforms")
+    p_cool.add_argument("--clear", help="end a rest/pause for these platforms, e.g. tiktok")
+    sub.add_parser("verify")
     p_back = sub.add_parser("backlog")
     p_back.add_argument("--platforms")
     p_list = sub.add_parser("list")
@@ -391,7 +436,7 @@ def main() -> int:
     try:
         return {"doctor": cmd_doctor, "baseline": cmd_baseline, "include-old": cmd_include_old,
                 "backlog": cmd_backlog, "cooldown": cmd_cooldown, "list": cmd_list, "run": cmd_run,
-                "status": cmd_status}[args.cmd](args)
+                "status": cmd_status, "verify": cmd_verify}[args.cmd](args)
     except (ConfigError, PlatformError) as e:
         _out({"error": str(e)})
         return 2
