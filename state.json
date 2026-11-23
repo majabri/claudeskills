@@ -1047,8 +1047,8 @@
       "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos th"
     },
     "tiktok": {
-      "at": "2026-11-23T10:33:51+00:00",
-      "reason": "TikTok /post/publish/inbox/video/init/ failed: 400 {'code': 'spam_risk_too_many_pending_share', 'message': 'spam_risk_too_many_pending_share', 'log_id': '20261123103351A7A955F8D152FA00BD6B'}"
+      "at": "2026-11-23T13:38:11+00:00",
+      "reason": "TikTok /post/publish/inbox/video/init/ failed: 400 {'code': 'spam_risk_too_many_pending_share', 'message': 'spam_risk_too_many_pending_share', 'log_id': '202611231338117B91F43C782C1703EFDD'}"
     }
   }
 }
