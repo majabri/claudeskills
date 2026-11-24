@@ -111,8 +111,8 @@ jobs:
             go=false
             if [ "$force" = "true" ]; then go=true                          # manual run
             elif [ "$(rest $p)" = "true" ]; then go=false                   # at its limit: rest
-            elif [ "$p" = tiktok ] && [ "$old" -gt 0 ]; then                # TikTok backlog: 1 every 2 hours, 8am-10pm
-              case "$hour" in 08|10|12|14|16|18|20|22) go=true ;; esac        # (about 8 a day, so TikTok doesn't see spam)
+            elif [ "$p" = tiktok ] && [ "$old" -gt 0 ]; then                # TikTok backlog: 4 a day (8:30, 12:30, 4:30, 8:30)
+              case "$hour" in 08|12|16|20) go=true ;; esac                    # (slow and steady, so TikTok does not see spam)
             elif [ "$old" -gt 0 ]; then go=true                             # backlog left: every hour
             else case "$hour" in 08|16|19) go=true ;; esac                  # caught up: 8:30, 4:30, 7:30
             fi

@@ -15,7 +15,28 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
+import re
+
 from common import PlatformError, env, truncate
+
+TIKTOK_MAX_TAGS = 5
+_TAG = re.compile(r"(?<!\w)#\w+")
+
+
+def tiktok_caption(caption: str) -> str:
+    """TikTok flags hashtag-stuffed captions and call-to-action lines as spam.
+    Keep the story text, drop "follow for..." lines, keep the first few hashtags."""
+    lines = []
+    for line in (caption or "").splitlines():
+        text = _TAG.sub("", line).strip()
+        if text and not re.match(r"(?i)^(follow|like|share|subscribe)\b", text):
+            lines.append(text)
+    tags = []
+    for t in _TAG.findall(caption or ""):
+        if t.lower() not in {x.lower() for x in tags}:
+            tags.append(t)
+    max_tags = int(env("TIKTOK_MAX_HASHTAGS", str(TIKTOK_MAX_TAGS)))
+    return ("\n".join(lines) + "\n\n" + " ".join(tags[:max_tags])).strip()
 
 API = "https://api.buffer.com"
 
@@ -82,5 +103,5 @@ def post_status(post_id: str) -> dict:
 def upload_tiktok(caption: str, video_url: str, override: dict | None = None) -> dict:
     override = override or {}
     channel = env("BUFFER_TIKTOK_CHANNEL_ID", required=True)
-    text = truncate(override.get("title") or caption or "", 2200)
+    text = truncate(override.get("title") or tiktok_caption(caption), 2200)
     return post_video(channel, video_url, text)
