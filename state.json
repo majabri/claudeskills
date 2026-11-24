@@ -1220,14 +1220,82 @@
           "at": "2026-11-23T18:00:24+00:00"
         }
       }
+    },
+    "18192957385410069": {
+      "permalink": "https://www.instagram.com/reel/DgGQOfPp1ni/",
+      "timestamp": "2026-11-23T20:37:01+0000",
+      "posts": {
+        "youtube": {
+          "id": "or1n4MoJWdM",
+          "url": "https://youtu.be/or1n4MoJWdM",
+          "privacy": "public",
+          "at": "2026-11-24T19:33:32+00:00"
+        }
+      }
+    },
+    "17908253502356131": {
+      "permalink": "https://www.instagram.com/reel/DgGSbSQprH0/",
+      "timestamp": "2026-11-23T20:56:12+0000",
+      "posts": {
+        "youtube": {
+          "id": "F12AqQi9YeI",
+          "url": "https://youtu.be/F12AqQi9YeI",
+          "privacy": "public",
+          "at": "2026-11-24T19:33:35+00:00"
+        }
+      }
+    },
+    "18129534704512858": {
+      "permalink": "https://www.instagram.com/reel/DgGan9zz8Kx/",
+      "timestamp": "2026-11-23T22:07:52+0000",
+      "posts": {
+        "youtube": {
+          "id": "7i63B-RDrc0",
+          "url": "https://youtu.be/7i63B-RDrc0",
+          "privacy": "public",
+          "at": "2026-11-24T19:33:37+00:00"
+        }
+      }
+    },
+    "18104604881179544": {
+      "permalink": "https://www.instagram.com/reel/DgGnGdeuvO1/",
+      "timestamp": "2026-11-23T23:56:58+0000",
+      "posts": {
+        "youtube": {
+          "id": "Q5cQY39ZKvg",
+          "url": "https://youtu.be/Q5cQY39ZKvg",
+          "privacy": "public",
+          "at": "2026-11-24T19:33:39+00:00"
+        }
+      }
+    },
+    "18250000975315163": {
+      "permalink": "https://www.instagram.com/reel/DgICRrHJHx6/",
+      "timestamp": "2026-11-24T13:13:40+0000",
+      "posts": {
+        "youtube": {
+          "id": "3Y4fABZkPk4",
+          "url": "https://youtu.be/3Y4fABZkPk4",
+          "privacy": "public",
+          "at": "2026-11-24T19:33:42+00:00"
+        }
+      }
+    },
+    "18030457724688117": {
+      "permalink": "https://www.instagram.com/reel/DenMc-xj_na/",
+      "timestamp": "2026-10-17T22:36:05+0000",
+      "posts": {
+        "youtube": {
+          "id": "X7ei6KUZnRM",
+          "url": "https://youtu.be/X7ei6KUZnRM",
+          "privacy": "public",
+          "at": "2026-11-24T19:33:44+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
   "cooldown": {
-    "youtube": {
-      "at": "2026-11-24T06:40:18+00:00",
-      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
-    },
     "tiktok": {
       "at": "2026-11-24T00:43:22+00:00",
       "reason": "PAUSED: TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
