@@ -171,13 +171,15 @@ def _record(mid: str, meta: dict, platform: str | None = None, result: dict | No
 COOLDOWN_HOURS = {"youtube": 12, "tiktok": 3, "x": 6}
 
 
-def _set_cooldown(platform: str, reason: str | None, paused: bool = False) -> None:
-    """paused=True rests the platform until someone runs `cooldown --clear <platform>`."""
+def _set_cooldown(platform: str, reason: str | None, paused: bool = False,
+                  hours: float | None = None) -> None:
+    """paused=True rests the platform until `cooldown --clear <platform>`, or for `hours`."""
     with common.state_lock():
         state = load_state()
         cd = state.setdefault("cooldown", {})
         if reason:
-            cd[platform] = {"at": _now(), "reason": reason[:300], **({"paused": True} if paused else {})}
+            cd[platform] = {"at": _now(), "reason": reason[:300], **({"paused": True} if paused else {}),
+                            **({"hours": hours} if hours else {})}
         else:
             cd.pop(platform, None)
         save_state(state)
@@ -194,8 +196,10 @@ def cmd_cooldown(args) -> int:
     for p in platforms:
         rec = cd.get(p)
         hrs = float(env(f"{p.upper()}_COOLDOWN_HOURS", str(COOLDOWN_HOURS.get(p, 6))))
-        resting = bool(rec) and (bool(rec.get("paused")) or
-                                 _age_hours(rec["at"].replace("+00:00", "+0000")) < hrs)
+        age = _age_hours(rec["at"].replace("+00:00", "+0000")) if rec else 0
+        if rec and rec.get("hours"):
+            hrs = float(rec["hours"])  # timed pause (e.g. after a TikTok spam flag)
+        resting = bool(rec) and ((bool(rec.get("paused")) and not rec.get("hours")) or age < hrs)
         out[p] = {"resting": resting, **({"since": rec["at"], "reason": rec["reason"],
                                           "paused": bool(rec.get("paused"))} if rec else {})}
     out["all_resting"] = all(v["resting"] for v in out.values())
@@ -233,7 +237,9 @@ def cmd_verify(_args) -> int:
             save_state(state)
     spam = [f for f in out["failed"] if "spam" in (f.get("error") or "").lower()]
     if spam:
-        _set_cooldown("tiktok", "PAUSED: " + spam[0]["error"], paused=True)
+        # Back off a full day, then try again on its own (TIKTOK_SPAM_PAUSE_HOURS to change).
+        _set_cooldown("tiktok", "PAUSED: " + spam[0]["error"], paused=True,
+                      hours=float(env("TIKTOK_SPAM_PAUSE_HOURS", "24")))
         out["tiktok_paused"] = True
     _out(out)
     return 0
