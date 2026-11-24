@@ -1292,6 +1292,54 @@
           "at": "2026-11-24T19:33:44+00:00"
         }
       }
+    },
+    "17953281279293644": {
+      "permalink": "https://www.instagram.com/reel/DeomMiNj4X9/",
+      "timestamp": "2026-10-18T11:40:17+0000",
+      "posts": {
+        "youtube": {
+          "id": "D2VrnTqxXfk",
+          "url": "https://youtu.be/D2VrnTqxXfk",
+          "privacy": "public",
+          "at": "2026-11-24T20:33:29+00:00"
+        }
+      }
+    },
+    "18168861145467897": {
+      "permalink": "https://www.instagram.com/reel/DepH7Aljjl3/",
+      "timestamp": "2026-10-18T16:34:59+0000",
+      "posts": {
+        "youtube": {
+          "id": "aoeTskbg2LI",
+          "url": "https://youtu.be/aoeTskbg2LI",
+          "privacy": "public",
+          "at": "2026-11-24T20:33:36+00:00"
+        }
+      }
+    },
+    "18359699209221889": {
+      "permalink": "https://www.instagram.com/reel/Dep4ZEDj1j0/",
+      "timestamp": "2026-10-18T23:38:30+0000",
+      "posts": {
+        "youtube": {
+          "id": "_5C3tT3Mnxo",
+          "url": "https://youtu.be/_5C3tT3Mnxo",
+          "privacy": "public",
+          "at": "2026-11-24T20:33:38+00:00"
+        }
+      }
+    },
+    "18108009473224835": {
+      "permalink": "https://www.instagram.com/reel/DerKvH3jr1R/",
+      "timestamp": "2026-10-19T11:38:05+0000",
+      "posts": {
+        "youtube": {
+          "id": "vGKaKLQqcgI",
+          "url": "https://youtu.be/vGKaKLQqcgI",
+          "privacy": "public",
+          "at": "2026-11-24T20:33:41+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
@@ -1301,6 +1349,10 @@
       "reason": "PAUSED: TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
       "paused": true,
       "hours": 24
+    },
+    "youtube": {
+      "at": "2026-11-24T20:33:42+00:00",
+      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
     }
   }
 }
