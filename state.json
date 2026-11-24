@@ -1006,14 +1006,6 @@
           "url": "https://youtu.be/tHShC9jOdxg",
           "privacy": "public",
           "at": "2026-11-22T17:15:11+00:00"
-        },
-        "tiktok": {
-          "id": "6b04cd54c43c1f2f5c6fefde",
-          "status": "SCHEDULED_IN_BUFFER",
-          "due_at": "2026-11-23T23:36:39.000Z",
-          "mode": "buffer",
-          "privacy": "public (published by Buffer)",
-          "at": "2026-11-23T23:33:41+00:00"
         }
       },
       "tiktok_reset_2026_11_23": {
@@ -1024,6 +1016,20 @@
           "mode": "inbox",
           "at": "2026-11-22T17:15:52+00:00"
         }
+      },
+      "failed": {
+        "tiktok": [
+          {
+            "id": "6b04cd54c43c1f2f5c6fefde",
+            "status": "SCHEDULED_IN_BUFFER",
+            "due_at": "2026-11-23T23:36:39.000Z",
+            "mode": "buffer",
+            "privacy": "public (published by Buffer)",
+            "at": "2026-11-23T23:33:41+00:00",
+            "error": "TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
+            "checked_at": "2026-11-24T00:43:22+00:00"
+          }
+        ]
       }
     },
     "18157198459535616": {
@@ -1221,6 +1227,11 @@
     "youtube": {
       "at": "2026-11-23T18:00:26+00:00",
       "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
+    },
+    "tiktok": {
+      "at": "2026-11-24T00:43:22+00:00",
+      "reason": "PAUSED: TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
+      "paused": true
     }
   }
 }
