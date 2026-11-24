@@ -83,6 +83,18 @@ def main() -> int:
         todo.append((ts, v))
     todo.sort(key=lambda x: x[0])
 
+    # Suggested times continue after the last slot handed out, so batches never overlap.
+    sched_file = out / ".schedule.json"
+    tomorrow = (datetime.now() + timedelta(days=1)).date()
+    try:
+        nxt = json.loads(sched_file.read_text())          # first free slot: {"day", "slot"}
+        next_day = datetime.strptime(nxt["day"], "%Y-%m-%d").date()
+        next_slot = int(nxt["slot"])
+        if next_day < tomorrow:
+            next_day, next_slot = tomorrow, 0
+    except Exception:
+        next_day, next_slot = tomorrow, 0
+
     week = out / datetime.now().strftime("Week of %Y-%m-%d")
     lines, skipped, packed = [], [], 0
     for i, (ts, v) in enumerate(todo, 1):
@@ -92,8 +104,8 @@ def main() -> int:
         week.mkdir(exist_ok=True)
         name = f"{i:02d} - {ts.astimezone().strftime('%b %d')}.mp4"
         urllib.request.urlretrieve(v["media_url"], week / name)
-        day, slot = divmod(packed, len(SLOTS))
-        when = (datetime.now() + timedelta(days=day + 1)).strftime("%a %b %d")
+        day, slot = divmod(next_slot + packed, len(SLOTS))
+        when = (next_day + timedelta(days=day)).strftime("%a %b %d")
         lines.append(f"{name}\n  Schedule: {when}, {SLOTS[slot]}\n  Caption: {spotlight_caption(v.get('caption'))}\n")
         seen.add(v["id"])
         packed += 1
@@ -103,6 +115,9 @@ def main() -> int:
             "Upload in Snapchat Profile Manager (profile.snapchat.com) -> Spotlight -> Schedule.\n"
             "Copy each caption below. Suggested times spread 3 a day.\n\n" + "\n".join(lines) +
             (("\nSkipped (licensed music, no file from Instagram):\n" + "\n".join(skipped)) if skipped else ""))
+    if packed:
+        day, slot = divmod(next_slot + packed, len(SLOTS))
+        sched_file.write_text(json.dumps({"day": str(next_day + timedelta(days=day)), "slot": slot}))
     seen_file.write_text(json.dumps(sorted(seen)))
     print(json.dumps({"folder": str(week) if packed else None, "packed": packed,
                       "skipped_licensed_music": len(skipped)}))
