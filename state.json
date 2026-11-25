@@ -1071,6 +1071,14 @@
           "url": "https://youtu.be/ky1aPf2uk3o",
           "privacy": "public",
           "at": "2026-11-22T17:32:42+00:00"
+        },
+        "tiktok": {
+          "id": "6b063b2b91929194132eba27",
+          "status": "SCHEDULED_IN_BUFFER",
+          "due_at": "2026-11-25T01:37:34.000Z",
+          "mode": "buffer",
+          "privacy": "public (published by Buffer)",
+          "at": "2026-11-25T01:34:35+00:00"
         }
       },
       "tiktok_reset_2026_11_23": {
@@ -1344,12 +1352,6 @@
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
   "cooldown": {
-    "tiktok": {
-      "at": "2026-11-24T00:43:22+00:00",
-      "reason": "PAUSED: TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
-      "paused": true,
-      "hours": 24
-    },
     "youtube": {
       "at": "2026-11-24T20:33:42+00:00",
       "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
