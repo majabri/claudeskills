@@ -1354,14 +1354,79 @@
           "at": "2026-11-24T20:33:41+00:00"
         }
       }
+    },
+    "18179486923453430": {
+      "permalink": "https://www.instagram.com/reel/DgI2rV8JqnR/",
+      "timestamp": "2026-11-24T20:51:29+0000",
+      "posts": {
+        "youtube": {
+          "id": "ZLHXp8S4ROM",
+          "url": "https://youtu.be/ZLHXp8S4ROM",
+          "privacy": "public",
+          "at": "2026-11-25T21:33:43+00:00"
+        }
+      }
+    },
+    "17989507698121055": {
+      "permalink": "https://www.instagram.com/reel/DgJLr7Dp671/",
+      "timestamp": "2026-11-24T23:55:03+0000",
+      "posts": {},
+      "skipped": {
+        "reason": "no_download_link",
+        "at": "2026-11-25T21:33:43+00:00"
+      }
+    },
+    "18005124938796740": {
+      "permalink": "https://www.instagram.com/reel/DgKkvmnpGA4/",
+      "timestamp": "2026-11-25T12:53:18+0000",
+      "posts": {
+        "youtube": {
+          "id": "8NLcCVqA4Vw",
+          "url": "https://youtu.be/8NLcCVqA4Vw",
+          "privacy": "public",
+          "at": "2026-11-25T21:33:45+00:00"
+        }
+      }
+    },
+    "17913516918540957": {
+      "permalink": "https://www.instagram.com/reel/DertpfYjrlJ/",
+      "timestamp": "2026-10-19T16:43:08+0000",
+      "posts": {
+        "youtube": {
+          "id": "dPxt-FQzkj8",
+          "url": "https://youtu.be/dPxt-FQzkj8",
+          "privacy": "public",
+          "at": "2026-11-25T21:33:48+00:00"
+        }
+      }
+    },
+    "18086170061700038": {
+      "permalink": "https://www.instagram.com/reel/DesWSzUjjeR/",
+      "timestamp": "2026-10-19T22:38:17+0000",
+      "posts": {
+        "youtube": {
+          "id": "GAEgnyPMz6Y",
+          "url": "https://youtu.be/GAEgnyPMz6Y",
+          "privacy": "public",
+          "at": "2026-11-25T21:33:52+00:00"
+        }
+      }
+    },
+    "18104543378360285": {
+      "permalink": "https://www.instagram.com/reel/DetviqMj-mJ/",
+      "timestamp": "2026-10-20T11:38:05+0000",
+      "posts": {
+        "youtube": {
+          "id": "lVX9-Zi_mh8",
+          "url": "https://youtu.be/lVX9-Zi_mh8",
+          "privacy": "public",
+          "at": "2026-11-25T21:33:55+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
   "cooldown": {
-    "youtube": {
-      "at": "2026-11-25T08:34:39+00:00",
-      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
-    },
     "tiktok": {
       "at": "2026-11-25T01:56:24+00:00",
       "reason": "PAUSED by Claude: TikTok flagged a 2nd Buffer post as spam even with a clean caption; paused until Amir decides",
