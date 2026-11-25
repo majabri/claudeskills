@@ -1423,6 +1423,66 @@
           "at": "2026-11-25T21:33:55+00:00"
         }
       }
+    },
+    "18033753188674223": {
+      "permalink": "https://www.instagram.com/reel/DeuSDC8k0MS/",
+      "timestamp": "2026-10-20T16:39:40+0000",
+      "posts": {
+        "youtube": {
+          "id": "NtxKA_Q0z9I",
+          "url": "https://youtu.be/NtxKA_Q0z9I",
+          "privacy": "public",
+          "at": "2026-11-25T22:33:24+00:00"
+        }
+      }
+    },
+    "18350099359250221": {
+      "permalink": "https://www.instagram.com/reel/Deu75aqj-uQ/",
+      "timestamp": "2026-10-20T22:45:18+0000",
+      "posts": {
+        "youtube": {
+          "id": "hSzkuSmJjqM",
+          "url": "https://youtu.be/hSzkuSmJjqM",
+          "privacy": "public",
+          "at": "2026-11-25T22:33:27+00:00"
+        }
+      }
+    },
+    "18202683844379000": {
+      "permalink": "https://www.instagram.com/reel/DewXRq2Drkp/",
+      "timestamp": "2026-10-21T12:03:50+0000",
+      "posts": {
+        "youtube": {
+          "id": "USdbxSVZj9I",
+          "url": "https://youtu.be/USdbxSVZj9I",
+          "privacy": "public",
+          "at": "2026-11-25T22:33:30+00:00"
+        }
+      }
+    },
+    "18078401924427368": {
+      "permalink": "https://www.instagram.com/reel/Dew6Qnwjwpr/",
+      "timestamp": "2026-10-21T17:09:30+0000",
+      "posts": {
+        "youtube": {
+          "id": "dVN66J3acgo",
+          "url": "https://youtu.be/dVN66J3acgo",
+          "privacy": "public",
+          "at": "2026-11-25T22:33:34+00:00"
+        }
+      }
+    },
+    "17965879023197125": {
+      "permalink": "https://www.instagram.com/reel/DexnaOODkgH/",
+      "timestamp": "2026-10-21T23:43:59+0000",
+      "posts": {
+        "youtube": {
+          "id": "wwTyBAnWKb8",
+          "url": "https://youtu.be/wwTyBAnWKb8",
+          "privacy": "public",
+          "at": "2026-11-25T22:33:36+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
@@ -1431,6 +1491,10 @@
       "at": "2026-11-25T01:56:24+00:00",
       "reason": "PAUSED by Claude: TikTok flagged a 2nd Buffer post as spam even with a clean caption; paused until Amir decides",
       "paused": true
+    },
+    "youtube": {
+      "at": "2026-11-25T22:33:37+00:00",
+      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
     }
   }
 }
