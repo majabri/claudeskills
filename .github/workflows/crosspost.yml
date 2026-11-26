@@ -1,7 +1,7 @@
 # Instagram -> YouTube + TikTok cross-poster (skill: plugins/marketing/skills/social-crosspost)
 #
 # Runs every hour. While a platform still owes old reels it posts a batch every run
-# (YouTube up to 6, TikTok up to 5; each stops early at the platform's daily cap).
+# (YouTube up to 6; TikTok posts 1 a day at 16:30). Each stops early at the platform's daily cap.
 # Once a platform is caught up it only acts at 08:30, 16:30 and 19:30 America/Detroit.
 #
 # Secrets (Settings -> Secrets and variables -> Actions): IG_ACCESS_TOKEN, IG_USER_ID,
@@ -45,6 +45,8 @@ jobs:
       # TikTok goes through Buffer (audited TikTok partner, free plan) so posts go public.
       TIKTOK_MODE: buffer
       BUFFER_TIKTOK_CHANNEL_ID: "6b0472dc8541f09ecb794519"   # @abookrsh3kings in Buffer
+      # 0 = a new TikTok spam flag pauses TikTok until someone clears it (no 24h auto-resume)
+      TIKTOK_SPAM_PAUSE_HOURS: "0"
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
@@ -111,8 +113,8 @@ jobs:
             go=false
             if [ "$force" = "true" ]; then go=true                          # manual run
             elif [ "$(rest $p)" = "true" ]; then go=false                   # at its limit: rest
-            elif [ "$p" = tiktok ] && [ "$old" -gt 0 ]; then                # TikTok backlog: 4 a day (8:30, 12:30, 4:30, 8:30)
-              case "$hour" in 08|12|16|20) go=true ;; esac                    # (slow and steady, so TikTok does not see spam)
+            elif [ "$p" = tiktok ]; then                                    # TikTok: 1 a day at 4:30pm, backlog or not
+              case "$hour" in 16) go=true ;; esac                             # (rebuilding trust after spam flags, Nov 2026)
             elif [ "$old" -gt 0 ]; then go=true                             # backlog left: every hour
             else case "$hour" in 08|16|19) go=true ;; esac                  # caught up: 8:30, 4:30, 7:30
             fi
