@@ -1268,6 +1268,14 @@
           "url": "https://youtu.be/7i63B-RDrc0",
           "privacy": "public",
           "at": "2026-11-24T19:33:37+00:00"
+        },
+        "tiktok": {
+          "id": "6b08a5ae860e3591ea315f3c",
+          "status": "SCHEDULED_IN_BUFFER",
+          "due_at": "2026-11-26T21:36:33.000Z",
+          "mode": "buffer",
+          "privacy": "public (published by Buffer)",
+          "at": "2026-11-26T21:33:34+00:00"
         }
       }
     },
