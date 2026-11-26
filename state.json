@@ -1493,7 +1493,7 @@
       "paused": true
     },
     "youtube": {
-      "at": "2026-11-25T22:33:37+00:00",
+      "at": "2026-11-26T11:36:12+00:00",
       "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
     }
   }
