@@ -1493,13 +1493,80 @@
           "at": "2026-11-25T22:33:36+00:00"
         }
       }
+    },
+    "18108496157195226": {
+      "permalink": "https://www.instagram.com/reel/Dey5WOkE_Bb/",
+      "timestamp": "2026-10-22T11:40:02+0000",
+      "posts": {
+        "youtube": {
+          "id": "tt-NbqrgL7c",
+          "url": "https://youtu.be/tt-NbqrgL7c",
+          "privacy": "public",
+          "at": "2026-11-27T00:47:42+00:00"
+        }
+      }
+    },
+    "18127501255913717": {
+      "permalink": "https://www.instagram.com/reel/DezbKbQjiw7/",
+      "timestamp": "2026-10-22T16:35:26+0000",
+      "posts": {
+        "youtube": {
+          "id": "EP4sI36WFoc",
+          "url": "https://youtu.be/EP4sI36WFoc",
+          "privacy": "public",
+          "at": "2026-11-27T00:47:45+00:00"
+        }
+      }
+    },
+    "18107049956359879": {
+      "permalink": "https://www.instagram.com/reel/De1driNiT17/",
+      "timestamp": "2026-10-23T11:35:54+0000",
+      "posts": {
+        "youtube": {
+          "id": "cHtDI_CmHCw",
+          "url": "https://youtu.be/cHtDI_CmHCw",
+          "privacy": "public",
+          "at": "2026-11-27T00:47:48+00:00"
+        }
+      }
+    },
+    "17987930003881266": {
+      "permalink": "https://www.instagram.com/reel/De2Af8PjlSW/",
+      "timestamp": "2026-10-23T16:40:09+0000",
+      "posts": {
+        "youtube": {
+          "id": "5ZpB0T4YUgU",
+          "url": "https://youtu.be/5ZpB0T4YUgU",
+          "privacy": "public",
+          "at": "2026-11-27T00:47:50+00:00"
+        }
+      }
+    },
+    "18103559720305386": {
+      "permalink": "https://www.instagram.com/reel/De4CwegOpJY/",
+      "timestamp": "2026-10-24T11:38:26+0000",
+      "posts": {
+        "youtube": {
+          "id": "SpDXSUuHP_Y",
+          "url": "https://youtu.be/SpDXSUuHP_Y",
+          "privacy": "public",
+          "at": "2026-11-27T00:47:52+00:00"
+        }
+      }
+    },
+    "18108373798955599": {
+      "permalink": "https://www.instagram.com/reel/De4kzOJzlL6/",
+      "timestamp": "2026-10-24T16:35:50+0000",
+      "posts": {
+        "youtube": {
+          "id": "0LNPHrvDSNs",
+          "url": "https://youtu.be/0LNPHrvDSNs",
+          "privacy": "public",
+          "at": "2026-11-27T00:47:55+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
-  "cooldown": {
-    "youtube": {
-      "at": "2026-11-26T11:36:12+00:00",
-      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
-    }
-  }
+  "cooldown": {}
 }
