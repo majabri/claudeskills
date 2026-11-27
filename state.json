@@ -327,6 +327,11 @@
           "url": "https://youtu.be/4Zz5Kwlx5qc",
           "privacy": "public",
           "at": "2026-11-22T17:32:46+00:00"
+        },
+        "tiktok": {
+          "status": "HELD_SOUND_SWAP",
+          "reason": "YouTube blocked its music (claim); owner chose to swap the sound before TikTok",
+          "at": "2026-11-27T01:28:55+00:00"
         }
       },
       "tiktok_reset_2026_11_23": {
@@ -1244,6 +1249,11 @@
           "url": "https://youtu.be/or1n4MoJWdM",
           "privacy": "public",
           "at": "2026-11-24T19:33:32+00:00"
+        },
+        "tiktok": {
+          "status": "HELD_SOUND_SWAP",
+          "reason": "YouTube blocked its music (claim); owner chose to swap the sound before TikTok",
+          "at": "2026-11-27T01:28:55+00:00"
         }
       }
     },
@@ -1256,6 +1266,11 @@
           "url": "https://youtu.be/F12AqQi9YeI",
           "privacy": "public",
           "at": "2026-11-24T19:33:35+00:00"
+        },
+        "tiktok": {
+          "status": "HELD_SOUND_SWAP",
+          "reason": "YouTube blocked its music (claim); owner chose to swap the sound before TikTok",
+          "at": "2026-11-27T01:28:55+00:00"
         }
       }
     },
@@ -1374,6 +1389,11 @@
           "url": "https://youtu.be/ZLHXp8S4ROM",
           "privacy": "public",
           "at": "2026-11-25T21:33:43+00:00"
+        },
+        "tiktok": {
+          "status": "HELD_SOUND_SWAP",
+          "reason": "YouTube blocked its music (claim); owner chose to swap the sound before TikTok",
+          "at": "2026-11-27T01:28:55+00:00"
         }
       }
     },
@@ -1395,6 +1415,11 @@
           "url": "https://youtu.be/8NLcCVqA4Vw",
           "privacy": "public",
           "at": "2026-11-25T21:33:45+00:00"
+        },
+        "tiktok": {
+          "status": "HELD_SOUND_SWAP",
+          "reason": "YouTube blocked its music (claim); owner chose to swap the sound before TikTok",
+          "at": "2026-11-27T01:28:55+00:00"
         }
       }
     },
