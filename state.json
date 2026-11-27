@@ -1417,17 +1417,28 @@
           "at": "2026-11-25T21:33:45+00:00"
         },
         "tiktok": {
-          "id": "6b09f768b5cd052fe292698f",
-          "status": "SCHEDULED_IN_BUFFER",
-          "due_at": "2026-11-27T21:37:32.000Z",
-          "mode": "buffer",
-          "privacy": "public (published by Buffer)",
-          "sound_swapped": {
-            "music": "kings-groove.mp3",
-            "hosted_asset": 802138608
-          },
-          "at": "2026-11-27T21:34:32+00:00"
+          "status": "HELD_SOUND_SWAP",
+          "at": "2026-11-27T22:33:21+00:00",
+          "reason": "new-sound post was rejected; held again"
         }
+      },
+      "failed": {
+        "tiktok": [
+          {
+            "id": "6b09f768b5cd052fe292698f",
+            "status": "SCHEDULED_IN_BUFFER",
+            "due_at": "2026-11-27T21:37:32.000Z",
+            "mode": "buffer",
+            "privacy": "public (published by Buffer)",
+            "sound_swapped": {
+              "music": "kings-groove.mp3",
+              "hosted_asset": 802138608
+            },
+            "at": "2026-11-27T21:34:32+00:00",
+            "error": "TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
+            "checked_at": "2026-11-27T22:33:21+00:00"
+          }
+        ]
       }
     },
     "17913516918540957": {
@@ -1661,6 +1672,11 @@
     "youtube": {
       "at": "2026-11-27T14:33:37+00:00",
       "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
+    },
+    "tiktok": {
+      "at": "2026-11-27T22:33:21+00:00",
+      "reason": "PAUSED: TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
+      "paused": true
     }
   }
 }
