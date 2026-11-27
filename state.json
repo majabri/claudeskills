@@ -1417,9 +1417,16 @@
           "at": "2026-11-25T21:33:45+00:00"
         },
         "tiktok": {
-          "status": "HELD_SOUND_SWAP",
-          "reason": "YouTube blocked its music (claim); owner chose to swap the sound before TikTok",
-          "at": "2026-11-27T01:28:55+00:00"
+          "id": "6b09f768b5cd052fe292698f",
+          "status": "SCHEDULED_IN_BUFFER",
+          "due_at": "2026-11-27T21:37:32.000Z",
+          "mode": "buffer",
+          "privacy": "public (published by Buffer)",
+          "sound_swapped": {
+            "music": "kings-groove.mp3",
+            "hosted_asset": 802138608
+          },
+          "at": "2026-11-27T21:34:32+00:00"
         }
       }
     },
