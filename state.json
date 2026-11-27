@@ -1590,8 +1590,70 @@
           "at": "2026-11-27T00:47:55+00:00"
         }
       }
+    },
+    "17914513674554718": {
+      "permalink": "https://www.instagram.com/reel/De5ODEYvbEw/",
+      "timestamp": "2026-10-24T22:36:18+0000",
+      "posts": {},
+      "skipped": {
+        "reason": "no_download_link",
+        "at": "2026-11-27T01:34:38+00:00"
+      }
+    },
+    "17907347286666754": {
+      "permalink": "https://www.instagram.com/reel/De6n0WTOHzn/",
+      "timestamp": "2026-10-25T11:40:45+0000",
+      "posts": {
+        "youtube": {
+          "id": "8N-SQxBHEk4",
+          "url": "https://youtu.be/8N-SQxBHEk4",
+          "privacy": "public",
+          "at": "2026-11-27T01:34:43+00:00"
+        }
+      }
+    },
+    "18016662041958761": {
+      "permalink": "https://www.instagram.com/reel/De7J94SvYOX/",
+      "timestamp": "2026-10-25T16:39:17+0000",
+      "posts": {
+        "youtube": {
+          "id": "MO-9L1bakis",
+          "url": "https://youtu.be/MO-9L1bakis",
+          "privacy": "public",
+          "at": "2026-11-27T01:34:46+00:00"
+        }
+      }
+    },
+    "18199400272386173": {
+      "permalink": "https://www.instagram.com/reel/De7eVC5uEqY/",
+      "timestamp": "2026-10-25T19:37:10+0000",
+      "posts": {
+        "youtube": {
+          "id": "_T6-yMiHFUk",
+          "url": "https://youtu.be/_T6-yMiHFUk",
+          "privacy": "public",
+          "at": "2026-11-27T01:34:49+00:00"
+        }
+      }
+    },
+    "18138475465644252": {
+      "permalink": "https://www.instagram.com/reel/De7y4uNuZTy/",
+      "timestamp": "2026-10-25T22:36:41+0000",
+      "posts": {
+        "youtube": {
+          "id": "rIMdCe8pQV0",
+          "url": "https://youtu.be/rIMdCe8pQV0",
+          "privacy": "public",
+          "at": "2026-11-27T01:34:52+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
-  "cooldown": {}
+  "cooldown": {
+    "youtube": {
+      "at": "2026-11-27T01:34:53+00:00",
+      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
+    }
+  }
 }
