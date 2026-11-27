@@ -1652,7 +1652,7 @@
   "backfill_since": "2026-11-17T02:18:49+00:00",
   "cooldown": {
     "youtube": {
-      "at": "2026-11-27T01:34:53+00:00",
+      "at": "2026-11-27T14:33:37+00:00",
       "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
     }
   }
