@@ -1,0 +1,55 @@
+# Make the new-sound version of Kings episodes (voices kept, music replaced) without
+# posting anything. Download the result from the run's "previews" artifact.
+name: Sound swap preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: "Instagram reel codes or media ids, comma-separated (e.g. DgKkvmnpGA4)"
+        required: true
+      music:
+        description: "Track or folder to use"
+        default: plugins/marketing/skills/social-crosspost/assets/music-candidates
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    if: github.repository == 'majabri/claudeskills'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SKILL: plugins/marketing/skills/social-crosspost
+      CROSSPOST_DATA_DIR: ${{ github.workspace }}/state
+      TIKTOK_SWAP_MUSIC: ${{ inputs.music }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      CROSSPOST_TOKEN_KEY: ${{ secrets.CROSSPOST_TOKEN_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load sign-ins
+        run: |
+          mkdir -p state
+          git fetch --depth 1 origin crosspost-state
+          git show origin/crosspost-state:state.json > state/state.json
+          git show origin/crosspost-state:tokens.enc > state/tokens.enc 2>/dev/null || rm -f state/tokens.enc
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q -r "$SKILL/requirements.txt"
+          pip install -q torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install -q demucs soundfile
+      - name: Make previews
+        run: python3 "$SKILL/scripts/crosspost.py" swap-preview --ids "${{ inputs.ids }}" | tee previews.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: previews
+          path: |
+            state/previews/
+            previews.json
+          retention-days: 7

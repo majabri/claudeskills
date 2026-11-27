@@ -104,6 +104,16 @@ If `python3 scripts/crosspost.py doctor` shows platforms not ready, follow
   audited TikTok partner, which publishes it publicly. TikTok's audit is not granted to
   personal "upload to my own account" tools, so `direct` will stay private. Never automate
   the TikTok website instead: TikTok bans bots, and it would put the account at risk.
+- **Claimed music (sound swap)**: when YouTube blocks an episode for a music claim, that
+  episode can be held from TikTok by setting `posts.tiktok = {"status": "HELD_SOUND_SWAP"}`
+  on the history branch. Held episodes stay out of the queue until `TIKTOK_SWAP_MUSIC` (a
+  file or folder of claim-free tracks) has a track; then, in their normal turn, Demucs
+  separates the voices, the new track goes under them (`scripts/audio_swap.py`), the file is
+  hosted briefly as a GitHub release asset for Buffer (`scripts/gh_host.py`) and deleted
+  once posted. A rejected new-sound post is held again, never posted with the old sound.
+  "Royalty-free" library music is often claimed by rights agents (e.g. HAAWK), so use music
+  the user owns or `scripts/make_backing_track.py` (synthesized from scratch, nothing to
+  match). Preview first: Actions -> "Sound swap preview" (or `crosspost.py swap-preview --ids`).
 - **Snapchat**: posting API is allowlist-only (Public Profile API, via a Snap account
   manager / profile-api-dev-support@snapchat.com). Until approved, `scripts/snapchat_pack.py`
   builds a weekly folder (Kings episodes + ≤160-char Spotlight captions + suggested times)

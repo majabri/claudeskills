@@ -8,6 +8,7 @@ Commands (all print JSON to stdout, progress to stderr):
   backlog                how many videos each platform still owes; "caught_up": true/false
   cooldown [--clear P]   platforms resting after a limit (no API calls); --clear ends a pause
   verify                 check TikTok posts handed to Buffer (live? rejected -> retry/pause)
+  swap-preview --ids A   make the new-sound version of a held episode, don't post it
   list [--limit N]       videos still owed (recent first, then the backlog oldest-first)
   run  [--ids A,B]       DRY RUN: show exactly what would be posted where
   run  ... --publish     actually download and post
@@ -30,6 +31,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import audio_swap  # noqa: E402
 import common  # noqa: E402
 from common import ConfigError, PlatformError, data_dir, env, load_state, log, save_state  # noqa: E402
 
@@ -128,6 +130,15 @@ def _wanted(v: dict) -> bool:
     return not tag or tag in (v.get("caption") or "").lower()
 
 
+def _owes(rec: dict, p: str) -> bool:
+    """Still owed to platform p. A TikTok episode held for a sound swap (its music was
+    claimed on YouTube) counts as owed only once a claim-free track is set."""
+    res = rec.get("posts", {}).get(p)
+    if res is None:
+        return True
+    return p == "tiktok" and res.get("status") == audio_swap.HELD and audio_swap.ready()
+
+
 def _new_videos(limit: int, platforms: list[str] | None = None) -> list[dict]:
     """Videos still owed to at least one platform.
 
@@ -143,7 +154,7 @@ def _new_videos(limit: int, platforms: list[str] | None = None) -> list[dict]:
         rec = handled.get(v["id"], {})
         if rec.get("baseline") or rec.get("skipped") or not _wanted(v):
             continue
-        if all(p in rec.get("posts", {}) for p in platforms):
+        if not any(_owes(rec, p) for p in platforms):
             continue
         owed.append(v)
     owed.sort(key=lambda v: v.get("timestamp") or "")
@@ -225,16 +236,26 @@ def cmd_verify(_args) -> int:
         with common.state_lock():
             state = load_state()
             rec = state["media"][mid]
+            swapped = res.get("sound_swapped") or {}
             if st["status"] == "sent":
                 rec["posts"]["tiktok"].update(status="PUBLISHED", url=st.get("link"), sent_at=st.get("sent_at"))
                 out["published"].append(mid)
             elif st["status"] == "error":
                 rec.setdefault("failed", {}).setdefault("tiktok", []).append(
                     {**rec["posts"].pop("tiktok"), "error": st.get("error"), "checked_at": _now()})
+                if swapped:  # retry later with a new sound again, never with the claimed one
+                    rec["posts"]["tiktok"] = {"status": audio_swap.HELD, "at": _now(),
+                                              "reason": "new-sound post was rejected; held again"}
                 out["failed"].append({"id": mid, "error": st.get("error")})
             else:
                 out["waiting"].append(mid)
             save_state(state)
+        if swapped.get("hosted_asset") and st["status"] in ("sent", "error"):
+            try:
+                import gh_host
+                gh_host.delete(swapped["hosted_asset"])  # Buffer has its own copy now
+            except PlatformError as e:
+                out.setdefault("cleanup_errors", []).append(str(e))
     spam = [f for f in out["failed"] if "spam" in (f.get("error") or "").lower()]
     if spam:
         # Back off a full day, then try again on its own (TIKTOK_SPAM_PAUSE_HOURS to change).
@@ -272,7 +293,7 @@ def cmd_backlog(args) -> int:
             rec = handled.get(v["id"], {})
             if rec.get("skipped") or not _wanted(v):
                 skipped += 1
-            elif p in rec.get("posts", {}):
+            elif not _owes(rec, p):
                 done += 1
             elif not rec.get("baseline"):
                 owed += 1
@@ -338,7 +359,7 @@ def cmd_run(args) -> int:
             break  # every platform is at its cap; the rest waits for the next run
         rec = load_state()["media"].get(v["id"], {})
         caption = v.get("caption", "") or ""
-        todo = [p for p in platforms if p not in rec.get("posts", {}) and p not in capped]
+        todo = [p for p in platforms if _owes(rec, p) and p not in capped]
         entry = {"id": v["id"], "timestamp": v.get("timestamp"),
                  "permalink": v.get("permalink"), "results": {}}
         if not todo:
@@ -365,7 +386,14 @@ def cmd_run(args) -> int:
             log(f"Posting {v['id']} to {p} ...")
             try:
                 extra = {"source_url": v.get("media_url")} if p == "tiktok" else {}
+                swapped = {}
+                if p == "tiktok" and rec.get("posts", {}).get("tiktok", {}).get("status") == audio_swap.HELD:
+                    swapped = _swap_and_host(v, path)  # claimed music: new track under the voices
+                    extra["source_url"] = swapped["url"]
                 res = _module(p).upload(path, caption, ov, **extra)
+                if swapped:
+                    res = {**res, "sound_swapped": {"music": swapped["music"],
+                                                    "hosted_asset": swapped["asset_id"]}}
                 _record(v["id"], v, p, {**res, "at": _now()})  # saved per platform: no double posts
                 if load_state().get("cooldown", {}).get(p):
                     _set_cooldown(p, None)
@@ -388,6 +416,34 @@ def cmd_run(args) -> int:
     posted = sum(1 for r in results for x in r["results"].values() if x.get("ok"))
     _out({"mode": "publish" if args.publish else "dry_run", "posted": posted,
           "capped": capped, "videos": results})
+    return 0
+
+
+def _swap_and_host(v: dict, path: Path) -> dict:
+    import gh_host
+    music = audio_swap.pick_music(v["id"])
+    log(f"Swapping the sound of {v['id']} (new track: {music.name}) ...")
+    out = audio_swap.swap(path, music)
+    hosted = gh_host.upload(out["path"], f"ig_{v['id']}_newsound.mp4")
+    return {"music": out["music"], **hosted}
+
+
+def cmd_swap_preview(args) -> int:
+    """Make the new-sound file for held episodes (--ids) without posting anything."""
+    import instagram
+    wanted = {i.strip() for i in (args.ids or "").split(",") if i.strip()}
+    vids = [v for v in instagram.list_videos(all_pages=True)
+            if v["id"] in wanted or (v.get("permalink") or "").rstrip("/").split("/")[-1] in wanted]
+    out = []
+    previews = data_dir() / "previews"
+    previews.mkdir(parents=True, exist_ok=True)
+    for v in vids:
+        path = instagram.download(v, data_dir() / "videos")
+        res = audio_swap.swap(path, audio_swap.pick_music(v["id"]), previews / f"{v['id']}_newsound.mp4")
+        out.append({"id": v["id"], "permalink": v.get("permalink"), "file": str(res["path"]),
+                    "music": res["music"], "voice_mean_db": res["voice_mean_db"]})
+    _out({"previews": out, "not_found": sorted(wanted - {v["id"] for v in vids}
+                                               - {(v.get("permalink") or "").rstrip("/").split("/")[-1] for v in vids})})
     return 0
 
 
@@ -426,6 +482,8 @@ def main() -> int:
     p_cool.add_argument("--platforms")
     p_cool.add_argument("--clear", help="end a rest/pause for these platforms, e.g. tiktok")
     sub.add_parser("verify")
+    p_swap = sub.add_parser("swap-preview")
+    p_swap.add_argument("--ids", required=True, help="Instagram media ids or reel codes")
     p_back = sub.add_parser("backlog")
     p_back.add_argument("--platforms")
     p_list = sub.add_parser("list")
@@ -442,7 +500,7 @@ def main() -> int:
     try:
         return {"doctor": cmd_doctor, "baseline": cmd_baseline, "include-old": cmd_include_old,
                 "backlog": cmd_backlog, "cooldown": cmd_cooldown, "list": cmd_list, "run": cmd_run,
-                "status": cmd_status, "verify": cmd_verify}[args.cmd](args)
+                "status": cmd_status, "verify": cmd_verify, "swap-preview": cmd_swap_preview}[args.cmd](args)
     except (ConfigError, PlatformError) as e:
         _out({"error": str(e)})
         return 2

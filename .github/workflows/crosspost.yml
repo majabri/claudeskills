@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write   # only to save posting history to the crosspost-state branch
+  contents: write   # save posting history to the crosspost-state branch; host new-sound videos briefly
 
 jobs:
   crosspost:
@@ -47,6 +47,10 @@ jobs:
       BUFFER_TIKTOK_CHANNEL_ID: "6b0472dc8541f09ecb794519"   # @abookrsh3kings in Buffer
       # 0 = a new TikTok spam flag pauses TikTok until someone clears it (no 24h auto-resume)
       TIKTOK_SPAM_PAUSE_HOURS: "0"
+      # Episodes held for claimed music get a new track from this folder before TikTok.
+      # Empty folder = they stay held. (See SKILL.md, "Claimed music".)
+      TIKTOK_SWAP_MUSIC: plugins/marketing/skills/social-crosspost/assets/swap-music
+      GITHUB_TOKEN: ${{ github.token }}   # host the new-sound file as a release asset for Buffer
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
       IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
       IG_USER_ID: ${{ secrets.IG_USER_ID }}
