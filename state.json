@@ -1734,6 +1734,75 @@
           "at": "2026-11-28T03:33:19+00:00"
         }
       }
+    },
+    "18169444198470142": {
+      "permalink": "https://www.instagram.com/reel/DfCV0qbJyLX/",
+      "timestamp": "2026-10-28T11:37:26+0000",
+      "posts": {},
+      "skipped": {
+        "reason": "no_download_link",
+        "at": "2026-11-28T04:33:15+00:00"
+      }
+    },
+    "17916933000533195": {
+      "permalink": "https://www.instagram.com/reel/DfDh5E4sOVe/",
+      "timestamp": "2026-10-28T22:42:08+0000",
+      "posts": {
+        "youtube": {
+          "id": "BnEDx5e2YJw",
+          "url": "https://youtu.be/BnEDx5e2YJw",
+          "privacy": "public",
+          "at": "2026-11-28T04:33:20+00:00"
+        }
+      }
+    },
+    "18090198698273787": {
+      "permalink": "https://www.instagram.com/reel/DfE7Ov6uqcr/",
+      "timestamp": "2026-10-29T11:42:50+0000",
+      "posts": {
+        "youtube": {
+          "id": "Iklgr2ghhAs",
+          "url": "https://youtu.be/Iklgr2ghhAs",
+          "privacy": "public",
+          "at": "2026-11-28T04:33:22+00:00"
+        }
+      }
+    },
+    "18133422121690252": {
+      "permalink": "https://www.instagram.com/reel/DfFdVuiuZVv/",
+      "timestamp": "2026-10-29T16:40:49+0000",
+      "posts": {
+        "youtube": {
+          "id": "MBQjfDI3k-I",
+          "url": "https://youtu.be/MBQjfDI3k-I",
+          "privacy": "public",
+          "at": "2026-11-28T04:33:25+00:00"
+        }
+      }
+    },
+    "18126739751294133": {
+      "permalink": "https://www.instagram.com/reel/DfGGRH2vVeb/",
+      "timestamp": "2026-10-29T22:38:29+0000",
+      "posts": {
+        "youtube": {
+          "id": "3jsHEx_ftQY",
+          "url": "https://youtu.be/3jsHEx_ftQY",
+          "privacy": "public",
+          "at": "2026-11-28T04:33:27+00:00"
+        }
+      }
+    },
+    "18055421516608293": {
+      "permalink": "https://www.instagram.com/reel/DfHf3S9zOum/",
+      "timestamp": "2026-10-30T11:41:19+0000",
+      "posts": {
+        "youtube": {
+          "id": "UowKO26cRCs",
+          "url": "https://youtu.be/UowKO26cRCs",
+          "privacy": "public",
+          "at": "2026-11-28T04:33:30+00:00"
+        }
+      }
     }
   },
   "backfill_since": "2026-11-17T02:18:49+00:00",
