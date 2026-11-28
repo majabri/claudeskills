@@ -1811,6 +1811,10 @@
       "at": "2026-11-27T22:33:21+00:00",
       "reason": "PAUSED: TikTok flagged this post as potential spam and blocked it from publishing. Please review your content and try again. If this persists, try posting directly through TikTok to verify your account is in good standing.",
       "paused": true
+    },
+    "youtube": {
+      "at": "2026-11-28T05:33:02+00:00",
+      "reason": "YouTube upload failed: <HttpError 400 when requesting None returned \"The user has exceeded the number of videos they may upload.\". Details: \"[{'message': 'The user has exceeded the number of videos they may upload.', 'domain': 'youtube.video', 'reason': 'uploadLimitExceeded'}]\">"
     }
   }
 }
